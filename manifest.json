@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "프로그래밍기능사 필기",
-  "short_name": "기능사 필기",
-  "description": "프로그래밍기능사 필기 모의고사, 요약노트, 오답노트",
+  "name": "자격증 공부 (프로그래밍기능사·ADsP)",
+  "short_name": "자격증 공부",
+  "description": "프로그래밍기능사 필기·실기, ADsP 모의고사, 요약노트, 오답노트",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
