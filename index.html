@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1d2b4f">
+<title>프로그래밍기능사 필기</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+/* VOICE: 손에 쥐고 매일 여는 공부 앱, 차분하고 단단하게
+   IDEA: 수험서 한 권 = 목차(홈) + 모의고사 + 요약노트 + 오답노트
+   PICTURE: 홈 상단의 진도 카드(오답 수, 최근 점수), 그 아래 목록
+   COLOUR and TYPE: 흰 바탕, 짙은 남색 헤더, 파랑 강조, 오답만 적색 / Noto Sans KR + JetBrains Mono
+   LAYOUT: 폰 한 열(최대 560px), 하단 탭바 4개, 넓은 화면에선 가운데 정렬 */
+:root{color-scheme:light dark;--bg:light-dark(#f3f4f7,#0d1118);--paper:light-dark(#fff,#161b26);--ink:light-dark(#121826,#e8ebf1);--mute:light-dark(#5e6677,#98a1b3);--line:light-dark(#dde1e8,#283041);--bar:#1d2b4f;--acc:#2f6fed;--hot:#e2462f;--ok:#1f9d55;--sel:light-dark(#e7efff,#1c2b4b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;overflow-x:clip}
+#app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:84px}
+button{font:inherit;cursor:pointer;border-radius:10px;min-height:44px;padding:0 16px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button:disabled{opacity:.45}
+.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.hd{background:var(--bar);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.hd h1{font-size:18px;margin:0;flex:1;line-height:1.3}
+.hd button{background:#ffffff1a;border-color:#ffffff33;color:#fff;min-height:38px;padding:0 12px;font-size:14px}
+.pad{padding:16px}
+.hero{background:var(--bar);color:#fff;padding:22px 16px 26px}
+.hero h1{font-size:28px;line-height:1.15;margin:0 0 4px}
+.hero p{margin:0;opacity:.8;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+.stat{background:#ffffff14;border-radius:12px;padding:12px}
+.stat b{display:block;font:700 26px/1.1 ui-monospace,"Roboto Mono",Menlo,Consolas,monospace}
+.stat span{font-size:13px;opacity:.85}
+.sec{font-size:14px;color:var(--mute);margin:20px 16px 8px;font-weight:700}
+.list{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:0;border-bottom:1px solid var(--line);background:none;padding:14px 16px;min-height:64px}
+.item:last-child{border-bottom:0}
+.ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:700;color:#fff;background:var(--acc);font-size:15px}
+.item .t{flex:1}.item .t b{display:block;font-weight:500}.item .t small{color:var(--mute);font-size:13px}
+.item .ar{color:var(--mute)}
+.badge{background:var(--hot);color:#fff;border-radius:99px;padding:1px 9px;font-size:13px;font-weight:700}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+.tabs a{display:grid;place-items:center;gap:2px;min-height:60px;color:var(--mute);text-decoration:none;font-size:12px}
+.tabs a svg{width:24px;height:24px}
+.tabs a.on{color:var(--acc);font-weight:700}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;margin:12px 16px}
+.subj{color:var(--mute);font-size:13px;margin-bottom:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qt{font-size:calc(17px*var(--fs,1));font-weight:500;line-height:1.6;margin:0 0 12px}
+.qt table,.md table{border-collapse:collapse;margin:10px 0;font-size:14px;width:100%}
+.qt td,.qt th,.md td,.md th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.md th,.qt th{background:var(--bg)}
+pre{background:light-dark(#f2f4f8,#0b0f16);border:1px solid var(--line);border-radius:10px;padding:12px;font:calc(13.5px*var(--fs,1))/1.55 ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;overflow-x:auto;margin:0 0 12px}
+code{font-family:ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;font-size:.9em;background:light-dark(#eef1f6,#202737);padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+pre code{background:none;padding:0}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px;min-height:54px;font-size:calc(16px*var(--fs,1));line-height:1.5;width:100%}
+.opt .n{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--mute);display:grid;place-items:center;font-size:14px;font-weight:700}
+.opt.on{background:var(--sel);border-color:var(--acc)}.opt.on .n{background:var(--acc);border-color:var(--acc);color:#fff}
+.opt.o{border-color:var(--ok);background:light-dark(#e8f6ee,#13261c)}.opt.o .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.x{border-color:var(--hot);background:light-dark(#fdecea,#2a1513)}.opt.x .n{border-color:var(--hot);color:var(--hot)}
+.ex{background:var(--sel);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:7}
+.foot .in{max-width:528px;margin:0 auto;display:flex;gap:8px}.foot .in>*{flex:1}
+.timer{font:600 17px ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;background:#ffffff1a;padding:4px 10px;border-radius:8px}
+.timer.low{background:var(--hot)}
+.prog{height:4px;background:var(--line)}.prog i{display:block;height:100%;background:var(--acc)}
+.overlay{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;justify-content:center;z-index:9}
+.overlay.show{display:flex}
+.dlg{background:var(--paper);border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:85vh;overflow:auto}
+.dlg h2{margin:0 0 8px;font-size:19px}.btns{display:flex;gap:8px;margin-top:16px}.btns>*{flex:1}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.grid button{min-height:44px;padding:0;font-variant-numeric:tabular-nums}
+.grid .done{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.grid .cur{outline:2px solid var(--acc);outline-offset:1px}
+.big{font:700 64px/1 ui-monospace,"Roboto Mono",Menlo,Consolas,monospace}
+.pass{color:var(--ok)}.fail{color:var(--hot)}
+.bar{display:grid;grid-template-columns:8.6em minmax(0,1fr) 3.4em;gap:8px;align-items:center;font-size:13.5px;margin-top:8px}
+.bar i{display:block;height:10px;border-radius:5px;background:var(--line);overflow:hidden}.bar i s{display:block;height:100%;background:var(--acc)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 9px;border-radius:99px;color:#fff;background:var(--hot)}
+.tag.ok{background:var(--ok)}.tag.m{background:var(--mute)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none}
+.chips button{flex:none;min-height:36px;padding:0 14px;border-radius:99px;font-size:14px}
+.chips .on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.md{font-size:15.5px}.md h2{font-size:21px;margin:4px 0 10px;line-height:1.3}.md h3{font-size:17px;margin:22px 0 8px;padding-top:12px;border-top:1px solid var(--line)}
+.md ul,.md ol{padding-left:20px;margin:8px 0}.md li{margin:4px 0}.md p{margin:8px 0}
+.md .tw{overflow-x:auto}
+.md li.ck{list-style:none;margin-left:-20px}
+.search{width:100%;font:inherit;font-size:16px;min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink)}
+.empty{text-align:center;color:var(--mute);padding:40px 16px}
+.note{font-size:13px;color:var(--mute)}
+details summary{cursor:pointer;list-style:none;font-weight:500;color:var(--acc);margin-top:10px;min-height:32px}
+mark{background:#ffe36a;color:#111;border-radius:3px}
+@media(prefers-reduced-motion:no-preference){.card,.list{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<div class="overlay" id="ov"><div class="dlg" id="dlg"></div></div>
+<script>
+{
+const S=["1과목 프로그래밍 언어","2과목 응용SW 기초기술","3과목 SQL 활용","4과목 정보시스템 기초기술"],SS=["프로그래밍 언어","응용SW 기초기술","SQL 활용","정보시스템 기초기술"];
+const Q=[[0,"다음 C 코드의 출력 결과는?",["10 10","10 11","11 10","11 11"],2,"a++는 값(10)을 b에 넣은 뒤 a를 11로 올린다.",'int a = 10;\nint b = a++;\nprintf("%d %d", a, b);'],
+[0,"다음 중 연산자 우선순위가 가장 높은 것은?",["&&","==","*","="],2,"산술 > 관계 > 논리 > 대입 (단산시관비논조대순)."],
+[0,"다음 Java 코드의 출력 결과는?",["A","B","AB","BA"],2,"자식 객체를 만들면 부모 생성자가 먼저 실행된다.",'class A { A() { System.out.print("A"); } }\nclass B extends A { B() { System.out.print("B"); } }\n// main에서\nnew B();'],
+[0,"다음 Python 코드의 출력 결과는?",["[10, 20, 30]","[20, 30, 40]","[20, 30, 40, 50]","[10, 20, 30, 40]"],1,"인덱스 1부터 4 직전(3)까지 → 20, 30, 40.","a = [10, 20, 30, 40, 50]\nprint(a[1:4])"],
+[0,"Python에서 print(-7 // 2)의 결과는?",["-3","-3.5","-4","3"],2,"//는 음의 무한대 방향으로 내림한다. -3.5 → -4."],
+[0,"객체지향 프로그래밍의 특징이 아닌 것은?",["캡슐화","상속","다형성","정규화"],3,"정규화는 데이터베이스 설계 개념이다."],
+[0,"다음 중 주로 인터프리터 방식으로 실행되는 언어는?",["C","C++","JavaScript","Fortran"],2,"JavaScript는 브라우저가 실행하는 스크립트 언어. 나머지는 컴파일 언어."],
+[0,"Java에서 같은 클래스 안에서만 접근할 수 있는 접근 제어자는?",["public","protected","default","private"],3,"private는 같은 클래스 안에서만 접근할 수 있다."],
+[0,"다음 C 코드의 출력 결과는?",["4","5","6","7"],2,"*(p+1) = arr[1] = 2, *(p+3) = arr[3] = 4 → 6.",'int arr[] = {1, 2, 3, 4};\nint *p = arr;\nprintf("%d", *(p + 1) + *(p + 3));'],
+[0,"다음 Java 코드의 출력 결과는?",["P","C","PC","컴파일 오류"],1,"오버라이딩된 메서드는 실제 객체(C) 기준으로 실행된다(동적 바인딩).",'class P { void show() { System.out.print("P"); } }\nclass C extends P { void show() { System.out.print("C"); } }\n// main에서\nP x = new C();\nx.show();'],
+[0,"예외 처리에서 예외 발생 여부와 관계없이 항상 실행되는 블록은?",["try","catch","finally","throw"],2,"finally는 예외가 있든 없든 항상 실행된다."],
+[0,'JavaScript에서 "5" === 5의 결과는?',["true","false","undefined","오류"],1,"===는 타입까지 비교한다. 문자열과 숫자라서 false."],
+[0,"HTML에서 다른 페이지로 이동하는 하이퍼링크를 만드는 태그는?",["<link>","<a>","<href>","<p>"],1,'<a href="주소">. <link>는 CSS 같은 외부 파일을 연결하는 태그.'],
+[0,"다음 Python 코드의 출력 결과는?",["1 4 7","1 4 7 10","1 3 6 9","3 6 9"],0,"1부터 3씩 증가하고 10 미만까지 → 1, 4, 7.",'for i in range(1, 10, 3):\n    print(i, end=" ")'],
+[0,"다음 C 코드의 출력 결과는?",["25","30","45","55"],0,"짝수는 건너뛰고 홀수만 더한다. 1+3+5+7+9 = 25.",'int s = 0;\nfor (int i = 1; i <= 10; i++) {\n    if (i % 2 == 0) continue;\n    s += i;\n}\nprintf("%d", s);'],
+[1,"교착 상태의 발생 조건이 아닌 것은?",["상호 배제","점유와 대기","선점","환형 대기"],2,"발생 조건은 ‘비선점’이다. 선점이 가능하면 교착이 풀린다."],
+[1,"다음 중 비선점 스케줄링 기법은?",["RR","SRT","SJF","다단계 피드백 큐"],2,"SJF는 비선점. RR·SRT·다단계 피드백 큐는 선점."],
+[1,"HRN 스케줄링에서 가장 먼저 실행되는 작업은?<table><tr><th>작업</th><th>대기 시간</th><th>서비스 시간</th></tr><tr><td>A</td><td>5</td><td>5</td></tr><tr><td>B</td><td>10</td><td>5</td></tr><tr><td>C</td><td>6</td><td>2</td></tr><tr><td>D</td><td>9</td><td>9</td></tr></table>",["A","B","C","D"],2,"(대기+서비스)/서비스 → A 2, B 3, C 4, D 2. 값이 가장 큰 C."],
+[1,"페이지 프레임이 3개이고 처음에 비어 있다. 참조 순서가 1 2 3 1 4 2일 때 FIFO 방식의 페이지 부재 횟수는?",["3","4","5","6"],1,"1·2·3 부재(3) → 1 적중 → 4 부재(1 교체) → 2 적중. 총 4회."],
+[1,"OSI 7계층 중 경로 설정(라우팅)을 담당하는 계층은?",["데이터 링크 계층","네트워크 계층","전송 계층","세션 계층"],1,"라우터와 IP는 네트워크 계층(3계층)."],
+[1,"‘비연결형이고 전송 속도가 빠르지만, 순서와 도착을 보장하지 않는다.’에 해당하는 프로토콜은?",["TCP","UDP","IP","HTTP"],1,"UDP는 비연결형이다. TCP는 연결형이고 신뢰성을 보장한다."],
+[1,"IP 주소를 MAC 주소로 바꾸는 프로토콜은?",["ARP","RARP","ICMP","DHCP"],0,"ARP는 IP→MAC, RARP는 MAC→IP."],
+[1,"HTTP의 기본 포트 번호는?",["21","23","80","443"],2,"21 FTP, 23 Telnet, 443 HTTPS."],
+[1,"네트워크 192.168.10.0/27에서 호스트에 할당할 수 있는 IP 주소는 몇 개인가?",["14","30","32","62"],1,"호스트 비트 5개 → 2⁵ = 32개, 네트워크·브로드캐스트 주소 2개를 빼면 30개."],
+[1,"IPv4 C 클래스의 첫 번째 옥텟 범위는?",["0~127","128~191","192~223","224~239"],2,"A 0~127, B 128~191, C 192~223, D 224~239."],
+[1,"UNIX에서 chmod 754 file을 실행한 뒤의 파일 권한은?",["rwxr-xr--","rwxr--r-x","rw-r-xr--","rwxrw-r--"],0,"7=rwx, 5=r-x, 4=r--."],
+[1,"UNIX에서 현재 작업 중인 디렉터리의 경로를 출력하는 명령어는?",["ls","cd","pwd","cat"],2,"pwd = print working directory."],
+[1,"블랙박스 테스트 기법이 아닌 것은?",["동치 분할","경계값 분석","기초 경로 테스트","원인-효과 그래프"],2,"기초 경로 테스트는 내부 구조를 보는 화이트박스 기법이다."],
+[1,"상향식 통합 테스트에서 상위 모듈 역할을 대신하는 가상 모듈은?",["스텁","드라이버","오라클","클러스터"],1,"상향식은 드라이버, 하향식은 스텁을 쓴다."],
+[1,"스래싱(Thrashing)에 대한 설명으로 옳은 것은?",["프로세스가 서로의 자원을 기다리며 무한 대기하는 현상","페이지 교체가 너무 잦아 실제 작업보다 교체에 더 많은 시간을 쓰는 현상","빈 메모리 공간이 작게 나뉘어 할당할 수 없는 현상","CPU가 다른 프로세스로 넘어갈 때 상태를 저장하는 현상"],1,"①은 교착 상태, ③은 외부 단편화, ④는 문맥 교환."],
+[2,"다음 중 DDL(데이터 정의어)이 아닌 것은?",["CREATE","ALTER","DROP","UPDATE"],3,"UPDATE는 DML(조작어)이다."],
+[2,"사용자에게 데이터베이스 객체에 대한 권한을 부여하는 SQL 명령어는?",["GRANT","REVOKE","COMMIT","INSERT"],0,"GRANT는 권한 부여, REVOKE는 회수."],
+[2,"속성이 5개, 튜플이 8개인 릴레이션의 카디널리티는?",["5","8","13","40"],1,"카디널리티 = 튜플(행) 수, 차수 = 속성(열) 수."],
+[2,"‘기본키는 NULL 값이나 중복 값을 가질 수 없다’는 규칙은?",["개체 무결성","참조 무결성","도메인 무결성","사용자 정의 무결성"],0,"개체 무결성. 참조 무결성은 외래키에 관한 규칙이다."],
+[2,"제1정규형에서 제2정규형으로 가기 위해 제거하는 것은?",["다중값 속성","부분 함수적 종속","이행적 함수 종속","다치 종속"],1,"2NF는 부분 함수적 종속을 제거한다 (도부이결다조)."],
+[2,"A → B, B → C일 때 A → C가 성립하는 종속을 제거하는 정규형은?",["1NF","2NF","3NF","BCNF"],2,"3NF는 이행적 종속을 제거한다."],
+[2,"WHERE 이름 LIKE '김_' 조건에 맞는 것은?",["김","김연","김연아","박김"],1,"_는 정확히 한 글자. 김 + 한 글자 = 두 글자."],
+[2,"GROUP BY로 묶은 그룹에 조건을 거는 절은?",["WHERE","HAVING","ORDER BY","DISTINCT"],1,"WHERE는 행 조건, HAVING은 그룹 조건."],
+[2,"SELECT 문에서 가장 먼저 처리되는 절은?",["SELECT","WHERE","FROM","GROUP BY"],2,"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."],
+[2,"테이블 구조는 남기고 모든 행을 삭제하는 DDL 명령어는?",["DROP","DELETE","TRUNCATE","ALTER"],2,"TRUNCATE는 DDL로 구조는 남긴다. DELETE는 DML, DROP은 구조까지 삭제."],
+[2,"트랜잭션의 연산이 모두 반영되거나 전혀 반영되지 않아야 한다는 성질은?",["원자성","일관성","독립성","영속성"],0,"원자성(All or Nothing)."],
+[2,"관계 대수에서 σ(시그마)가 나타내는 연산은?",["조건에 맞는 튜플(행)을 고른다","필요한 속성(열)만 고른다","두 릴레이션을 결합한다","두 릴레이션의 차집합을 구한다"],0,"σ는 Select(행), π는 Project(열)."],
+[2,"스키마 3단계 중 사용자나 응용 프로그래머 각각의 관점에서 본 논리 구조는?",["외부 스키마","개념 스키마","내부 스키마","물리 스키마"],0,"외부 스키마 = 서브 스키마, 사용자 관점."],
+[2,"[성적] 테이블에서 다음 SQL의 결과는?<table><tr><th>이름</th><th>점수</th></tr><tr><td>가</td><td>80</td></tr><tr><td>나</td><td>NULL</td></tr><tr><td>다</td><td>60</td></tr></table>",["3, 46.7","3, 70","2, 70","2, 46.7"],2,"NULL은 집계에서 빠진다. COUNT = 2, AVG = (80+60)/2 = 70.","SELECT COUNT(점수), AVG(점수) FROM 성적;"],
+[2,"LEFT OUTER JOIN에 대한 설명으로 옳은 것은?",["양쪽 테이블에 모두 있는 행만 출력한다","왼쪽 테이블의 행은 모두 출력하고, 오른쪽에 맞는 행이 없으면 NULL로 채운다","두 테이블의 모든 조합을 출력한다","오른쪽 테이블의 행만 모두 출력한다"],1,"①은 INNER JOIN, ③은 CROSS JOIN, ④는 RIGHT OUTER JOIN에 가깝다."],
+[3,"10진수 25를 2진수로 바꾼 것은?",["10011","11001","11010","10101"],1,"16 + 8 + 1 = 25 → 11001."],
+[3,"2진수 11010011을 16진수로 바꾼 것은?",["C3","D3","D5","B3"],1,"1101 = D, 0011 = 3 → D3."],
+[3,"다음에 실행할 명령어의 주소를 저장하는 레지스터는?",["IR","MAR","PC","AC"],2,"PC(Program Counter). IR은 현재 명령, MAR은 기억장치 주소."],
+[3,"다음 중 대칭키 암호화 알고리즘은?",["RSA","ECC","AES","DSA"],2,"AES는 대칭키. RSA·ECC·DSA는 비대칭키."],
+[3,"복호화할 수 없는 단방향 해시 함수는?",["SHA-256","DES","SEED","RSA"],0,"SHA 계열은 해시. DES·SEED는 대칭키, RSA는 비대칭키."],
+[3,"정보보안의 3요소(CIA)가 아닌 것은?",["기밀성","무결성","가용성","확장성"],3,"CIA = 기밀성, 무결성, 가용성."],
+[3,"웹 페이지 입력창에 SQL 문을 넣어 데이터베이스를 조작하는 공격은?",["XSS","SQL 삽입","스니핑","DDoS"],1,"XSS는 악성 스크립트를 삽입하는 공격이다."],
+[3,"다음 중 결합도가 가장 약한(낮은) 것은?",["내용 결합도","공통 결합도","제어 결합도","자료 결합도"],3,"강함→약함: 내용 > 공통 > 외부 > 제어 > 스탬프 > 자료."],
+[3,"다음 중 응집도가 가장 강한(높은) 것은?",["우연적 응집도","논리적 응집도","순차적 응집도","기능적 응집도"],3,"강함→약함: 기능적 > 순차적 > 교환적 > 절차적 > 시간적 > 논리적 > 우연적."],
+[3,"개발을 반복하면서 매번 위험 분석을 거치는 소프트웨어 개발 모델은?",["폭포수 모델","나선형 모델","V-모델","프로토타입 모델"],1,"나선형 모델은 계획 → 위험 분석 → 개발 → 평가를 반복한다."],
+[3,"스크럼에서 제품 백로그의 우선순위를 정하는 사람은?",["스크럼 마스터","제품 책임자(PO)","개발팀","고객"],1,"PO가 백로그 우선순위를 정한다. 스크럼 마스터는 장애물을 없앤다."],
+[3,"Git에서 로컬 저장소의 커밋을 원격 저장소로 올리는 명령어는?",["commit","pull","push","clone"],2,"commit은 로컬 저장, pull은 내려받기, clone은 복제."],
+[3,"동적 콘텐츠와 비즈니스 로직을 처리하는 서버 소프트웨어는?",["Apache HTTP Server","Nginx","Tomcat","Lighttpd"],2,"Tomcat은 WAS. 나머지는 정적 콘텐츠를 처리하는 웹 서버."],
+[3,"사용자가 설치 없이 인터넷으로 소프트웨어를 빌려 쓰는 클라우드 서비스는?",["IaaS","PaaS","SaaS","DaaS"],2,"SaaS = Software as a Service."],
+[3,"2진수 1010을 그레이 코드로 바꾼 것은?",["1111","1010","1101","0101"],0,"첫 비트 1은 그대로, 이후 인접 비트 XOR: 1⊕0=1, 0⊕1=1, 1⊕0=1 → 1111."]].map(([s,q,o,a,e,c],id)=>({id,s,q,o,a,e,c}));
+const MD="# 프로그래밍기능사 필기 요약노트\n\nNov 24, 2026 · @훈\n\n## 시험 개요\n\n필기는 4과목 통합 60문항, 60분 동안 풀고 60점(36문항) 이상이면 합격이다. 과목별 과락은 없다. 2026년부터 정보처리기능사가 프로그래밍기능사로 바뀌었고, 실기는 필답형에서 작업형(코딩 테스트)으로 바뀌었다.\n\n| 항목 | 내용 |\n| --- | --- |\n| 필기 과목 | 프로그래밍 언어 · 응용SW기초기술 · SQL 활용 · 정보시스템 기초기술 |\n| 방식 | CBT, 객관식 4지 택일 60문항, 60분 |\n| 합격 | 100점 만점에 60점 이상 |\n| 응시자격 | 제한 없음 |\n| 실기 | 기초프로그래밍 실무, 작업형, 1시간 30분 |\n\n**첫 회차 출제 경향**: Java·Python 코드, OSI 7계층, IP 주소, 데이터베이스, SQL 명령어, UNIX 명령어가 나왔다고 알려져 있다([시나공 Q&A](https://sinagong.co.kr/community/001003001/book-qnas/279552)).\n\n**공부 전략 (컴공 기준)**\n\n1. 코드 출력 문제(C·Java·Python)는 직접 손으로 추적하는 연습을 한다. 배점이 가장 확실한 영역이다.\n2. SQL은 문법을 외우고 SELECT 결과를 예측하는 연습을 한다.\n3. 낯선 용어(테스트 기법, 형상관리, 보안 공격)는 표로 외운다.\n4. 마지막 주에는 맨 아래 체크리스트로 훑고 CBT 모의고사를 3회 이상 푼다.\n\n이 노트는 개정 교재 목차와 NCS 능력단위를 바탕으로 정리했다. 공식 세세항목은 [큐넷](https://www.q-net.or.kr) 출제기준 자료실의 프로그래밍기능사 파일로 대조하자.\n\n## 1과목 프로그래밍 언어\n\n코드 출력 결과 문제가 핵심이다. 연산자 우선순위, 반복문 횟수, 배열 인덱스, 오버라이딩을 정확히 추적할 수 있어야 한다.\n\n### 1-1. 언어 분류\n\n| 분류 | 특징 | 예 |\n| --- | --- | --- |\n| 구조적(절차적) | 순차·선택·반복 3구조, goto 지양, 함수 단위 | C, Pascal |\n| 객체지향 | 클래스·객체 중심, 재사용성 | Java, C++, Python, C# |\n| 스크립트 | 인터프리터로 실행, 컴파일 불필요 | JavaScript, Python, PHP, Perl, Shell |\n| 선언형 | 무엇을 원하는지 기술 | SQL, HTML, Prolog, Haskell, LISP |\n\n- **컴파일러**: 전체를 미리 번역, 실행 빠름, 목적 프로그램 생성 (C, C++)\n- **인터프리터**: 한 줄씩 번역·실행, 디버깅 쉬움, 목적 프로그램 없음 (Python, JavaScript)\n- **Java**: 바이트코드(.class)로 컴파일 후 JVM이 실행 → 플랫폼 독립성\n- 번역 순서: 원시 프로그램 → 컴파일러 → 목적 프로그램 → 링커 → 로드 모듈 → 로더 → 실행\n\n### 1-2. 공통 문법\n\n**데이터 타입 크기 (C/Java)**\n\n| 타입 | C | Java |\n| --- | --- | --- |\n| char | 1바이트 | 2바이트(유니코드) |\n| short | 2 | 2 |\n| int | 4 | 4 |\n| long | 4 또는 8(환경별) | 8 |\n| float | 4 | 4 |\n| double | 8 | 8 |\n| boolean | 없음(0/1) | 1 |\n\n**연산자 우선순위** (높음 → 낮음)\n\n1. 단항: `++` `--` `!` `~` `sizeof` (오른쪽→왼쪽 결합)\n2. 산술: `*` `/` `%` → `+` `-`\n3. 시프트: `\u003c\u003c` `>>`\n4. 관계: `\u003c` `\u003c=` `>` `>=` → `==` `!=`\n5. 비트: `&` → `^` → `|`\n6. 논리: `&&` → `||`\n7. 조건(삼항): `? :`\n8. 대입: `=` `+=` `-=` 등 (오른쪽→왼쪽)\n9. 순서: `,`\n\n암기법: **단산시관비논조대순**\n\n**자주 틀리는 포인트**\n\n- `a++`는 값을 쓰고 나서 증가, `++a`는 증가 후 사용\n- 정수 나눗셈 `7/2 = 3`, `-7/2 = -3`(C/Java는 0 방향 버림), Python은 `7//2 = 3`, `-7//2 = -4`\n- `%`: Java·C는 부호가 왼쪽 피연산자를 따름(`-7%3 = -1`), Python은 오른쪽을 따름(`-7%3 = 2`)\n- `&&`, `||`는 단축 평가: 앞에서 결과가 정해지면 뒤는 실행 안 함\n- 비트: `5 & 3 = 1`, `5 | 3 = 7`, `5 ^ 3 = 6`, `~5 = -6`, `1 \u003c\u003c 3 = 8`, `16 >> 2 = 4`\n- `switch`에 `break`가 없으면 아래 case까지 계속 실행(fall-through)\n- `do-while`은 조건과 상관없이 최소 1번 실행\n- `continue`는 다음 반복으로, `break`는 반복 탈출\n\n### 1-3. C언어\n\n- 서식 문자: `%d` 정수, `%f` 실수, `%c` 문자, `%s` 문자열, `%x` 16진수, `%o` 8진수, `%p` 주소, `%5d` 5칸 오른쪽 정렬, `%.2f` 소수점 2자리\n- 입출력: `printf`, `scanf(\"%d\", &a)`(주소 전달), `getchar`, `putchar`, `gets`, `puts`\n- 기억 클래스: `auto`(지역, 기본), `register`(CPU 레지스터), `static`(함수 끝나도 값 유지), `extern`(다른 파일의 전역 변수)\n- 문자열 끝에는 `'\\0'`(널 문자)이 붙는다. `char s[] = \"abc\";`는 4바이트\n- 문자열 함수(`string.h`): `strlen`(길이, `\\0` 제외), `strcpy`, `strcat`, `strcmp`(같으면 0)\n- 포인터: `&a` = a의 주소, `*p` = p가 가리키는 값. `arr[i]` = `*(arr + i)`\n- 포인터 연산: `p + 1`은 자료형 크기만큼 이동(int면 4바이트)\n- 구조체: `struct`로 서로 다른 타입 묶음. 일반 변수는 `s.name`, 포인터는 `p->name`\n- 동적 할당: `malloc`(할당), `free`(해제), `calloc`(0으로 초기화)\n- 전처리기: `#include`, `#define`(매크로), `#ifdef`\n\n```c\nint a[5] = {1, 2, 3, 4, 5};\nint *p = a;\nprintf(\"%d\", *(p + 2) + p[4]); // 3 + 5 = 8\n```\n\n### 1-4. Java\n\n- 클래스 = 설계도, 객체(인스턴스) = `new`로 만든 실체\n- 생성자: 클래스 이름과 같고 반환형 없음. `this`는 자기 객체, `super`는 부모\n- 상속: `extends`(단일 상속만), 인터페이스는 `implements`(다중 구현 가능)\n- 자식 객체 생성 시 **부모 생성자가 먼저** 실행된다\n- 오버로딩: 같은 이름, 매개변수 개수·타입이 다름 (한 클래스 안)\n- 오버라이딩: 부모 메서드를 자식이 같은 시그니처로 재정의\n- `Parent p = new Child(); p.show();` → **자식의 show()** 실행(동적 바인딩). 단, static 메서드와 필드는 참조 타입(부모) 기준\n- 접근 제어자: `public`(전체) > `protected`(같은 패키지 + 자식) > `default`(같은 패키지) > `private`(같은 클래스)\n- `static`: 객체 없이 클래스명으로 접근, 모든 객체가 공유\n- `final`: 변수는 상수, 메서드는 오버라이딩 금지, 클래스는 상속 금지\n- 추상 클래스(`abstract`): 추상 메서드 포함 가능, 객체 생성 불가\n- 인터페이스: 모든 메서드가 기본적으로 추상, 변수는 `public static final`\n- 문자열: `==`는 주소 비교, `equals()`는 내용 비교. `String`은 불변 객체\n- 배열: `int[] a = new int[3];` 길이는 `a.length`, 문자열 길이는 `s.length()`\n- 배열·객체는 참조를 넘기므로 메서드 안에서 바꾸면 원본도 바뀜다\n\n```java\nclass A { void f() { System.out.print(\"A\"); } }\nclass B extends A { void f() { System.out.print(\"B\"); } }\nA x = new B(); x.f(); // B\n```\n\n### 1-5. Python\n\n- 동적 타이핑, 들여쓰기로 블록 구분, 세미콜론 불필요\n- 자료형: `list [ ]`(변경 가능), `tuple ( )`(변경 불가), `dict {k: v}`, `set { }`(중복 제거, 순서 없음)\n- 슬라이싱 `s[시작:끝:간격]`: 끝은 포함 안 함. `s[::-1]`은 뒤집기, `s[-1]`은 마지막\n- `range(1, 10, 2)` → 1, 3, 5, 7, 9 (10은 포함 안 함)\n- 리스트 메서드: `append`(끝에 추가), `insert(i, x)`, `extend`(리스트 이어 붙임), `remove(x)`(값 삭제), `pop()`(마지막 꺼냄), `sort`, `reverse`, `index`, `count`\n- 문자열: `split`, `join`, `upper`, `lower`, `replace`, `strip`, `find`\n- 연산자: `**` 거듭제곱, `//` 몫, `in` 포함 여부, `is` 같은 객체 여부, 논리는 `and` `or` `not`\n- 함수: `def`, 기본 매개변수, `lambda x: x * 2`, 여러 값 반환(튜플)\n- 클래스: `class`, 생성자 `__init__(self)`, 메서드 첫 매개변수는 `self`\n- `print(a, b, sep=\",\", end=\"\")`: sep은 구분자, end는 끝 문자(기본 줄바꿈)\n\n```python\na = [1, 2, 3, 4, 5]\nprint(a[1:4], a[::2], sum(a[-2:])) # [2, 3, 4] [1, 3, 5] 9\n```\n\n### 1-6. 객체지향 특징\n\n| 개념 | 의미 |\n| --- | --- |\n| 캡슐화 | 데이터와 함수를 묶고 외부에 숨김(정보 은닉) |\n| 상속 | 부모의 속성·메서드를 물려받음 |\n| 다형성 | 같은 메시지에 객체마다 다르게 반응(오버로딩·오버라이딩) |\n| 추상화 | 필요한 특징만 간추림 |\n| 메시지 | 객체에게 동작을 요청하는 것 |\n\n구성 요소: 클래스, 객체, 속성(attribute), 메서드, 메시지, 인스턴스.\n\n### 1-7. 웹 프로그래밍 (HTML·JavaScript)\n\n- HTML은 구조를 표시하는 마크업 언어. 주요 태그: `\u003chtml>` `\u003chead>` `\u003ctitle>` `\u003cbody>` `\u003ch1>~\u003ch6>` `\u003cp>` `\u003ca href>` `\u003cimg src alt>` `\u003ctable>\u003ctr>\u003ctd>` `\u003cul>\u003col>\u003cli>` `\u003cform>` `\u003cinput>` `\u003cdiv>` `\u003cspan>` `\u003cbr>`\n- `\u003cinput type>`: text, password, radio, checkbox, submit, button, file, hidden\n- `\u003cform method>`: GET(URL에 데이터 노출, 길이 제한) / POST(본문에 담음)\n- CSS는 스타일(색, 크기, 배치). 선택자: 태그 `p`, 클래스 `.name`, 아이디 `#name`\n- JavaScript는 브라우저에서 실행되는 스크립트 언어. 변수 `var`(함수 스코프), `let`(블록, 재할당 가능), `const`(재할당 불가)\n- JS `==`는 타입 변환 후 비교, `===`는 타입까지 비교 (`\"1\" == 1` true, `\"1\" === 1` false)\n- DOM: `document.getElementById()`, 이벤트 `onclick`, `onload`, `onchange`\n- 출력: `alert()`, `console.log()`, `document.write()`\n\n### 1-8. 예외 처리\n\n- 예외(Exception)는 실행 중 발생하는 오류. 프로그램이 멈추지 않게 처리한다\n- Java: `try { } catch (Exception e) { } finally { }` — finally는 예외 여부와 상관없이 항상 실행. 직접 발생 `throw`, 떠넘기기 `throws`\n- Python: `try / except / else / finally`, 직접 발생 `raise`. else는 예외가 없을 때만 실행\n- Java 주요 예외: `ArithmeticException`(0으로 나눔), `ArrayIndexOutOfBoundsException`, `NullPointerException`, `NumberFormatException`, `ClassCastException`\n- Python 주요 예외: `ZeroDivisionError`, `IndexError`, `KeyError`, `ValueError`, `TypeError`, `NameError`\n- Checked 예외(컴파일 시 처리 강제, IOException 등) vs Unchecked(RuntimeException 계열)\n\n### 1-9. 라이브러리\n\n- 라이브러리는 자주 쓰는 함수·클래스를 모아둔 것. 표준 라이브러리(기본 탑재) vs 외부 라이브러리(별도 설치)\n- C 헤더: `stdio.h`(입출력), `stdlib.h`(malloc, rand, atoi), `string.h`(문자열), `math.h`(수학), `time.h`(시간)\n- Java 패키지: `java.lang`(기본, 자동 import: String, Math, System), `java.util`(컨렉션: ArrayList, HashMap, Scanner), `java.io`(입출력), `java.net`(네트워크)\n- Python 모듈: `math`, `random`, `datetime`, `os`, `sys`, `re`(정규식), 가져오기는 `import`, `from ... import`\n- 프레임워크와 차이: 라이브러리는 개발자가 호출, 프레임워크는 틀이 개발자 코드를 호출(제어의 역전, IoC)\n\n## 2과목 응용SW 기초기술\n\n운영체제, UNIX/Linux 명령어, 네트워크(OSI·IP), 테스트가 나온다. 스케줄링 계산과 페이지 교체, 서브넷 계산은 손으로 풀 수 있어야 한다.\n\n### 2-1. 운영체제 기초\n\n- 운영체제(OS)는 하드웨어와 사용자 사이의 인터페이스. 자원(CPU, 메모리, 입출력, 파일) 관리\n- 성능 평가 기준: 처리 능력(Throughput) ↑, 반환 시간(Turnaround Time) ↓, 사용 가능도(Availability) ↑, 신뢰도(Reliability) ↑\n- 구성: 제어 프로그램(감시, 작업 관리, 데이터 관리) + 처리 프로그램(언어 번역, 서비스, 문제)\n- 커널: OS의 핵심, 항상 메모리에 상주. 셸(Shell): 사용자 명령을 해석하는 명령어 해석기\n\n**운영 방식**\n\n| 방식 | 특징 |\n| --- | --- |\n| 일괄 처리 | 일정량·기간 모아서 한 번에 처리(급여 계산) |\n| 실시간 | 요청 즉시 처리(예약, 은행) |\n| 시분할 | CPU 시간을 쪼개 여러 사용자가 번갈아 사용 |\n| 다중 프로그래밍 | 여러 프로그램을 메모리에 올려 CPU 1개로 번갈아 실행 |\n| 다중 처리 | CPU 여러 개로 동시에 처리 |\n| 분산 처리 | 네트워크로 연결된 여러 컴퓨터가 나눠 처리 |\n\n발달 순서: 일괄 → 실시간 → 다중 프로그래밍·시분할·다중 처리 → 분산 처리.\n\n### 2-2. 프로세스와 스케줄링\n\n- 프로세스 = 실행 중인 프로그램. 정보는 PCB(프로세스 제어 블록)에 저장(상태, 프로그램 카운터, 레지스터, 우선순위)\n- 스레드 = 프로세스 안의 실행 단위, 같은 프로세스의 스레드는 메모리 공유\n- 상태: 생성 → 준비(Ready) → 실행(Running) → 대기(Waiting/Block) → 종료\n- 상태 전이: 디스패치(준비→실행), 타임아웃(실행→준비), 블록(실행→대기), 웨이크업(대기→준비)\n- 문맥 교환(Context Switching): CPU가 다른 프로세스로 넘어갈 때 상태를 저장·복구\n\n| 스케줄링 | 선점 | 특징 |\n| --- | --- | --- |\n| FCFS(FIFO) | 비선점 | 먼저 온 순서 |\n| SJF | 비선점 | 실행 시간 짧은 것 먼저, 평균 대기 최소 |\n| HRN | 비선점 | 우선순위 = (대기 + 서비스) / 서비스, 큰 것 먼저 |\n| 우선순위 | 둘 다 | 우선순위 높은 것 먼저, 기아 → 에이징(Aging)으로 해결 |\n| RR(라운드 로빈) | 선점 | 시간 할당량(Time Slice)만큼씩 번갈아 |\n| SRT | 선점 | 남은 실행 시간 짧은 것 먼저(SJF의 선점형) |\n| 다단계 큐(MLQ, MFQ) | 선점 | 우선순위별 여러 큐 |\n\n- 반환 시간 = 대기 시간 + 실행 시간\n- 예(SJF, 모두 0초 도착): P1=6, P2=3, P3=8 → 순서 P2, P1, P3 → 대기 0, 3, 9 → 평균 대기 4\n\n### 2-3. 교착 상태와 동기화\n\n- 교착 상태(Deadlock): 둘 이상의 프로세스가 서로의 자원을 기다리며 무한 대기\n- 발생 4조건(모두 만족해야 발생): 상호 배제, 점유와 대기, 비선점, 환형 대기\n- 해결: 예방(조건 하나 제거), 회피(은행원 알고리즘, 다익스트라), 발견(자원 할당 그래프), 회복(프로세스 강제 종료, 자원 선점)\n- 임계 영역: 한 번에 하나의 프로세스만 접근해야 하는 공유 자원 구역. 해결 도구: 세마포어(P, V 연산), 모니터, 뮤텍스\n\n### 2-4. 기억장치 관리\n\n- 계층: 레지스터 → 캐시 → 주기억장치(RAM) → 보조기억장치(SSD/HDD). 위로 갈수록 빠르고 비싸고 작다\n- 배치 전략: 최초 적합(First Fit, 첫 번째 맞는 곳), 최적 적합(Best Fit, 남는 공간 가장 작은 곳), 최악 적합(Worst Fit, 가장 큰 곳)\n- 단편화: 내부 단편화(할당 영역이 남음), 외부 단편화(빈 공간이 작아서 못 씀). 해결: 통합(인접 빈 공간 합치기), 압축(모두 한쪽으로 모으기)\n- 가상 기억장치: 보조기억장치를 주기억장치처럼 사용. 페이징(같은 크기로 나눔, 내부 단편화), 세그먼테이션(논리적 단위로 나눔, 외부 단편화)\n- 스래싱(Thrashing): 페이지 교체가 너무 잦아 실제 작업보다 교체에 시간을 더 씀\n- 지역성(Locality): 시간 지역성(최근 쓴 것을 다시), 공간 지역성(근처를 이어서). 워킹 셋의 근거\n\n**페이지 교체 알고리즘**\n\n| 알고리즘 | 교체 대상 |\n| --- | --- |\n| FIFO | 가장 먼저 들어온 페이지 |\n| LRU | 가장 오랫동안 사용 안 한 페이지 |\n| LFU | 사용 횟수가 가장 적은 페이지 |\n| OPT | 앞으로 가장 오랫동안 안 쓸 페이지(이론상 최적, 구현 불가) |\n| NUR | 최근에 사용 안 한 페이지(참조 비트·변형 비트) |\n\n계산 예(FIFO, 프레임 3개, 참조 1 2 3 4 1 2): 1, 2, 3 부재 → 4 부재(1 교체) → 1 부재(2 교체) → 2 부재(3 교체) → 페이지 부재 6회.\n\n### 2-5. 파일·디스크\n\n- 디스크 스케줄링: FCFS, SSTF(가장 가까운 것), SCAN(엘리베이터처럼 한 방향 끝까지), C-SCAN(한 방향만 처리), LOOK(요청 끝까지만)\n- RAID: 0(스트라이핑, 중복 없음), 1(미러링), 5(패리티 분산, 디스크 1개 고장 복구), 6(패리티 2개)\n- 파일 시스템: Windows는 FAT32, NTFS / Linux는 ext4\n\n### 2-6. UNIX/Linux\n\n- 구성: 커널(프로세스·메모리·파일 관리), 셸(명령어 해석: sh, bash, csh, ksh), 유틸리티\n- 특징: 다중 사용자·다중 작업, 대부분 C로 작성(이식성 높음), 트리 구조 파일 시스템, 대소문자 구분\n- 디렉터리: `/`(루트), `/bin`(기본 명령어), `/etc`(설정 파일), `/home`(사용자), `/dev`(장치), `/tmp`(임시), `/var`(로그)\n- inode: 파일의 소유자, 크기, 권한, 위치 등 정보를 담은 구조체 (파일 이름은 없음)\n\n| 명령어 | 기능 |\n| --- | --- |\n| `ls` | 목록 보기 (`-l` 자세히, `-a` 숨김 파일) |\n| `cd` / `pwd` | 디렉터리 이동 / 현재 경로 |\n| `mkdir` / `rmdir` | 디렉터리 생성 / 빈 디렉터리 삭제 |\n| `cp` / `mv` / `rm` | 복사 / 이동·이름 변경 / 삭제 (`rm -r` 하위 포함) |\n| `cat` | 파일 내용 출력 |\n| `more` / `less` / `head` / `tail` | 화면 단위 출력 / 앞부분 / 끝부분 |\n| `chmod` | 권한 변경 |\n| `chown` / `chgrp` | 소유자 / 그룹 변경 |\n| `ps` / `kill` | 프로세스 보기 / 종료 |\n| `grep` | 파일에서 문자열 찾기 |\n| `find` | 파일 찾기 |\n| `fork` / `exec` | 자식 프로세스 복제 / 새 프로그램 실행 |\n| `mount` / `umount` | 파일 시스템 연결 / 해제 |\n| `tar` / `gzip` | 묶기 / 압축 |\n| `man` | 도움말 |\n| `who` / `whoami` | 접속자 / 현재 사용자 |\n| `ifconfig` / `ping` | 네트워크 설정 / 연결 확인 |\n\n**권한 (chmod)**: `-rwxr-xr--` = 소유자(rwx=7) 그룹(r-x=5) 기타(r--=4) → `chmod 754 file`. r=4, w=2, x=1. 예) `chmod 644` = rw-r--r--.\n\n**리다이렉션·파이프**: `>` 덮어쓰기, `>>` 이어쓰기, `\u003c` 입력, `|` 앞 명령 결과를 다음 명령 입력으로 (`ls | grep txt`).\n\n**Windows 대응 명령어**: `dir`(=ls), `copy`(=cp), `del`(=rm), `type`(=cat), `cls`(화면 지움), `ipconfig`(=ifconfig), `attrib`(속성 변경).\n\n### 2-7. 네트워크\n\n**OSI 7계층** (아래부터: 물데네전세표응)\n\n| 계층 | 역할 | 단위 | 장비·프로토콜 |\n| --- | --- | --- | --- |\n| 7 응용 | 사용자 서비스 | 데이터 | HTTP, FTP, SMTP, DNS, Telnet |\n| 6 표현 | 코드 변환, 암호화, 압축 | 데이터 | JPEG, MPEG, ASCII |\n| 5 세션 | 연결 설정·유지·동기화(체크포인트) | 데이터 | NetBIOS, RPC |\n| 4 전송 | 종단 간 신뢰성, 흐름·오류 제어 | 세그먼트 | TCP, UDP |\n| 3 네트워크 | 경로 설정(라우팅), 논리 주소(IP) | 패킷 | 라우터, IP, ICMP, ARP |\n| 2 데이터 링크 | 인접 노드 간 전송, MAC 주소, 오류 검출 | 프레임 | 스위치, 브리지, Ethernet, HDLC |\n| 1 물리 | 비트를 전기 신호로 | 비트 | 리피터, 허브, 케이블 |\n\n**TCP/IP 4계층**: 응용(OSI 5\\~7) → 전송(4) → 인터넷(3) → 네트워크 액세스(1\\~2).\n\n- TCP: 연결형, 신뢰성(순서·재전송 보장), 3-way handshake(SYN → SYN+ACK → ACK)\n- UDP: 비연결형, 빠름, 신뢰성 낮음(스트리밍, DNS 조회)\n- ARP: IP → MAC 변환 / RARP: MAC → IP / ICMP: 오류 메시지(ping)\n- DHCP: IP 자동 할당 / DNS: 도메인 → IP / NAT: 사설 IP ↔ 공인 IP 변환\n- 포트 번호: FTP 20·21, SSH 22, Telnet 23, SMTP 25, DNS 53, HTTP 80, POP3 110, IMAP 143, HTTPS 443\n\n**IP 주소 (IPv4)**: 32비트, 8비트씩 4개를 점(.)으로 구분.\n\n| 클래스 | 첫 옥텋 범위 | 기본 서브넷 마스크 | 용도 |\n| --- | --- | --- | --- |\n| A | 0\\~127 | 255.0.0.0 (/8) | 대규모 |\n| B | 128\\~191 | 255.255.0.0 (/16) | 중규모 |\n| C | 192\\~223 | 255.255.255.0 (/24) | 소규모 |\n| D | 224\\~239 | 없음 | 멀티캐스트 |\n| E | 240\\~255 | 없음 | 연구용 |\n\n- 127.0.0.1 = 루프백(자기 자신)\n- 사설 IP: 10.0.0.0/8, 172.16.0.0\\~172.31.255.255, 192.168.0.0/16\n- 서브넷팅: /26 = 255.255.255.192 → 호스트 비트 6개 → 2⁶ = 64개 중 네트워크·브로드캐스트 주소 2개 빼고 **사용 가능 62개**\n- 예) 192.168.1.70/26 → 네트워크 192.168.1.64, 브로드캐스트 192.168.1.127\n- IPv6: 128비트, 16비트씩 8개를 콜론(:)으로 구분, 16진수 표기. 유니캐스트·멀티캐스트·애니캐스트 (브로드캐스트 없음), 보안(IPsec) 기본\n\n**네트워크 기타**\n\n- 토폴로지: 성형(중앙 허브), 버스형(한 케이블), 링형(원형), 트리형, 망형(모두 연결, n(n-1)/2개 회선)\n- 범위: LAN(근거리) \u003c MAN(도시) \u003c WAN(광역)\n- 전송 방식: 단방향(TV), 반이중(무전기), 전이중(전화)\n- 교환 방식: 회선 교환(전용 경로), 패킷 교환(가상 회선 / 데이터그램)\n- 오류 검출: 패리티, CRC, 해밍 코드(오류 정정까지 가능)\n\n### 2-8. 애플리케이션 테스트\n\n- 테스트 원리: 결함 존재 증명(없음은 증명 못 함), 완벽한 테스트 불가능, 결함 집중(파레토 80:20), 살충제 패러독스(같은 테스트 반복하면 결함 못 찾음), 오류-부재의 궁식, 정황 의존성, 조기 테스트\n- 검증(Verification): 제품을 올바르게 만들었나(개발자 관점) / 확인(Validation): 올바른 제품을 만들었나(사용자 관점)\n- 정적 테스트(실행 안 함: 동료 검토, 워크스루, 인스펙션) / 동적 테스트(실행함: 화이트박스, 블랙박스)\n\n| 구분 | 화이트박스 | 블랙박스 |\n| --- | --- | --- |\n| 관점 | 내부 구조·로직 | 기능·명세(입출력) |\n| 기법 | 기초 경로, 제어 구조(조건·루프·데이터 흐름), 커버리지(구문·결정·조건·MC/DC) | 동치 분할, 경계값 분석, 원인-효과 그래프, 오류 예측, 비교 |\n\n- 순환 복잡도(McCabe) V(G) = 간선 수 − 노드 수 + 2 (또는 영역 수 + 1 또는 조건 수 + 1)\n- 테스트 레벨(V-모델): 단위(모듈) → 통합(인터페이스) → 시스템(전체 기능·성능) → 인수(사용자 요구사항)\n- 인수 테스트: 알파(개발자 장소에서 사용자가) / 베타(사용자 환경에서 여러 사용자가)\n- 통합 테스트: 하향식(상위부터, **스텁** 필요) / 상향식(하위부터, **드라이버** 필요) / 빅뱅(한꺼번에)\n- 회귀 테스트: 수정 후 다른 부분에 새 오류가 없는지 다시 확인\n- 테스트 오라클: 기대 결과를 판단하는 기준(참, 샘플링, 휴리스틱, 일관성 검사)\n- 테스트 케이스 구성: 식별자, 테스트 항목, 입력 데이터, 예상 결과, 테스트 환경, 전제 조건\n- 경계값 예: 입력 1\\~100이 유효하면 0, 1, 100, 101을 테스트한다\n\n## 3과목 SQL 활용\n\nSQL 문법 분류(DDL·DML·DCL)와 SELECT 결과 예측이 핵심이다. 정규화, 키, 무결성, 트랜잭션 성질은 용어 그대로 나온다.\n\n### 3-1. 데이터베이스 기초\n\n- 데이터베이스 정의: 통합된(중복 최소화), 저장된(보조기억장치), 운영(업무에 필수), 공용(여러 사용자 공유) 데이터\n- 특징: 실시간 접근, 계속적 변화, 동시 공유, 내용에 의한 참조\n- DBMS 필수 기능: 정의(Definition), 조작(Manipulation), 제어(Control)\n- 장점: 중복 최소화, 일관성·무결성·보안 유지, 데이터 독립성 / 단점: 비용, 백업·회복 복잡\n- 스키마 3단계: 외부(사용자별 관점, 서브 스키마) → 개념(전체 논리 구조, 기관 하나에 하나) → 내부(물리적 저장 구조)\n- 데이터 독립성: 논리적 독립성(개념 변경이 외부에 영향 없음), 물리적 독립성(내부 변경이 개념에 영향 없음)\n- 데이터 사전(시스템 카탈로그): DB 객체 정보를 담은 메타데이터. 사용자는 조회만 가능, 갱신은 DBMS가 자동으로\n- DBA(데이터베이스 관리자): 스키마 정의, 보안·권한, 백업·회복, 성능 관리\n\n### 3-2. 데이터베이스 설계\n\n- 순서: 요구 분석 → 개념적 설계(E-R 다이어그램, DBMS 독립) → 논리적 설계(테이블·정규화, 특정 데이터 모델 종속) → 물리적 설계(저장 구조·인덱스, 특정 DBMS 종속) → 구현\n- E-R 다이어그램 기호: 사각형=개체, 마름모=관계, 타원=속성, 밑줄 타원=기본키 속성, 이중 타원=다중값 속성, 선=연결\n- 관계 유형: 1:1, 1:N, N:M\n- 데이터 모델 종류: 계층형(트리), 망형(그래프), 관계형(테이블), 객체지향형\n- 데이터 모델 구성 3요소: 구조, 연산, 제약조건\n\n### 3-3. 관계형 모델 용어\n\n| 용어 | 뜻 | 테이블 용어 |\n| --- | --- | --- |\n| 릴레이션 | 표 전체 | 테이블 |\n| 튜플 | 한 행 | 행(레코드) |\n| 속성(attribute) | 한 열 | 열(컬럼) |\n| 도메인 | 속성이 가질 수 있는 값의 범위 | 데이터 타입·제약 |\n| 차수(Degree) | 속성의 개수 | 열 개수 |\n| 카디널리티(Cardinality) | 튜플의 개수 | 행 개수 |\n\n- 릴레이션 특징: 튜플 중복 없음, 튜플·속성 순서 없음, 속성값은 원자값(더 나눌 수 없음)\n- 예: 5열 10행 테이블 → 차수 5, 카디널리티 10\n\n### 3-4. 키와 무결성\n\n| 키 | 설명 |\n| --- | --- |\n| 후보키 | 튜플을 유일하게 식별. 유일성 + 최소성 |\n| 기본키(PK) | 후보키 중 선택한 하나. NULL·중복 불가 |\n| 대체키 | 기본키로 선택되지 않은 후보키 |\n| 슈퍼키 | 유일성만 만족(최소성 X) |\n| 외래키(FK) | 다른 테이블의 기본키를 참조하는 속성 |\n\n- 개체 무결성: 기본키는 NULL·중복 불가\n- 참조 무결성: 외래키 값은 참조 테이블의 기본키에 있거나 NULL\n- 도메인 무결성: 속성값은 정의된 도메인 범위 안에서\n- 참조 무결성 옵션: `CASCADE`(함께 삭제·변경), `SET NULL`, `RESTRICT`(참조 중이면 거부)\n\n### 3-5. 정규화와 이상\n\n- 이상(Anomaly): 중복 때문에 생기는 문제. 삽입 이상(불필요한 값도 함께 넣어야 함), 삭제 이상(필요한 값도 같이 지워짐), 갱신 이상(일부만 바뀌어 불일치)\n- 함수적 종속 X → Y: X 값이 정해지면 Y 값이 하나로 정해짐 (학번 → 이름)\n\n| 단계 | 조건 (암기: 도부이결다조) |\n| --- | --- |\n| 1NF | 모든 속성값이 원자값(반복·다중값 제거) |\n| 2NF | 부분 함수적 종속 제거(복합키 일부에만 종속된 속성 분리) |\n| 3NF | 이행적 종속 제거(A→B, B→C일 때 A→C 제거) |\n| BCNF | 모든 결정자가 후보키 |\n| 4NF | 다치 종속 제거 |\n| 5NF | 조인 종속 제거 |\n\n- 반정규화: 성능을 위해 일부러 중복을 허용하는 것(테이블 통합·분할, 중복 속성 추가)\n\n### 3-6. SQL 분류\n\n| 분류 | 명령어 | 용도 |\n| --- | --- | --- |\n| DDL(정의어) | CREATE, ALTER, DROP, TRUNCATE, RENAME | 테이블·뷰·인덱스 구조 정의 |\n| DML(조작어) | SELECT, INSERT, UPDATE, DELETE | 데이터 조회·변경 |\n| DCL(제어어) | GRANT, REVOKE | 권한 부여·회수 |\n| TCL(트랜잭션 제어) | COMMIT, ROLLBACK, SAVEPOINT | 트랜잭션 확정·취소 (DCL에 포함하기도 함) |\n\n**DDL**\n\n```sql\nCREATE TABLE 학생 (\n  학번 CHAR(8) PRIMARY KEY,\n  이름 VARCHAR(20) NOT NULL,\n  학과코드 CHAR(3) REFERENCES 학과(코드),\n  학년 INT CHECK (학년 BETWEEN 1 AND 4)\n);\nALTER TABLE 학생 ADD 전화 VARCHAR(15);\nDROP TABLE 학생 CASCADE;\n```\n\n- 제약조건: `PRIMARY KEY`, `FOREIGN KEY ... REFERENCES`, `UNIQUE`, `NOT NULL`, `CHECK`, `DEFAULT`\n- `DROP`(구조까지 삭제) vs `TRUNCATE`(구조는 남기고 데이터만 전부 삭제) vs `DELETE`(DML, 조건별 삭제, 롤백 가능)\n- `CASCADE`는 참조하는 것까지 함께, `RESTRICT`는 참조 중이면 거부\n- 뷰(VIEW): 가상 테이블. `CREATE VIEW`로 만들고 ALTER로는 수정 불가(DROP 후 재생성). 보안·논리적 독립성 제공, 삽입·수정에 제약\n- 인덱스: 검색 속도 향상, `CREATE [UNIQUE] INDEX 이름 ON 테이블(열)`. 삽입·수정이 잦으면 오히려 느려짐\n\n**DML**\n\n```sql\nINSERT INTO 학생 (학번, 이름) VALUES ('20260001', '김철수');\nUPDATE 학생 SET 학년 = 2 WHERE 학번 = '20260001';\nDELETE FROM 학생 WHERE 학년 = 4;\n```\n\n- `UPDATE`·`DELETE`에 WHERE가 없으면 **전체 행**에 적용\n- 키워드 짝: INSERT **INTO** \\~ **VALUES** / UPDATE \\~ **SET** / DELETE **FROM**\n\n**SELECT 구조와 실행 순서**\n\n```sql\nSELECT 학과, COUNT(*) AS 인원, AVG(점수)\nFROM 학생\nWHERE 학년 >= 2\nGROUP BY 학과\nHAVING COUNT(*) >= 3\nORDER BY 인원 DESC;\n```\n\n실행 순서: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY.\n\n- `DISTINCT`: 중복 제거 / `*`: 모든 열 / `AS`: 별칭\n- 비교: `=`, `\u003c>`(같지 않음), `BETWEEN a AND b`(양끝 포함), `IN (…)`, `IS NULL`(`= NULL`은 틀린 문법)\n- `LIKE`: `%`는 0글자 이상, `_`는 정확히 1글자. `'김%'`=김으로 시작, `'_민%'`=둘째 글자가 민\n- 집계 함수: `COUNT`, `SUM`, `AVG`, `MAX`, `MIN`. NULL은 계산에서 제외(단 `COUNT(*)`는 NULL 행도 셈)\n- WHERE는 행 조건(집계 함수 못 씀), HAVING은 그룹 조건(집계 함수 사용)\n- `ORDER BY`: 기본 ASC(오름차순), DESC는 내림차순\n- 하위 질의: `WHERE 점수 > (SELECT AVG(점수) FROM 학생)`, `IN`, `EXISTS`, `ANY`, `ALL`\n- 집합 연산: `UNION`(합집합, 중복 제거), `UNION ALL`(중복 포함), `INTERSECT`(교집합), `EXCEPT`/`MINUS`(차집합)\n\n**조인**\n\n```sql\nSELECT s.이름, d.학과명\nFROM 학생 s INNER JOIN 학과 d ON s.학과코드 = d.코드;\n```\n\n- INNER JOIN: 양쪽에 모두 있는 행만\n- LEFT OUTER JOIN: 왼쪽은 전부, 오른쪽은 없으면 NULL (RIGHT는 반대, FULL은 양쪽 전부)\n- CROSS JOIN: 카티션 곱(행 수 = m × n)\n- SELF JOIN: 같은 테이블끼리(직원-관리자)\n- 자연 조인(NATURAL JOIN): 같은 이름의 열로 자동 조인, 중복 열 제거\n\n**DCL**\n\n```sql\nGRANT SELECT, UPDATE ON 학생 TO user1 WITH GRANT OPTION;\nREVOKE UPDATE ON 학생 FROM user1 CASCADE;\n```\n\n- `WITH GRANT OPTION`: 받은 권한을 다른 사용자에게도 나눠줄 수 있음\n- 짝: GRANT \\~ **TO** / REVOKE \\~ **FROM**\n\n### 3-7. 관계 대수·해석\n\n| 연산 | 기호 | 의미 |\n| --- | --- | --- |\n| Select | σ | 조건에 맞는 행(수평) |\n| Project | π | 필요한 열(수직) |\n| Join | ⋈ | 공통 속성으로 결합 |\n| Division | ÷ | 나누는 릴레이션의 모든 값과 관련된 튜플 |\n| 합·교·차·카티션 곱 | ∪ ∩ − × | 일반 집합 연산 |\n\n- 관계 대수는 **절차적**(어떻게), 관계 해석은 **비절차적**(무엇을). 표현력은 동등\n- 카티션 곱: 차수는 더하고(a+b), 카디널리티는 곱한다(m×n)\n\n### 3-8. 트랜잭션과 회복\n\n- 트랜잭션: 하나의 논리적 작업 단위(계좌 이체 = 출금 + 입금)\n\n| ACID | 의미 |\n| --- | --- |\n| 원자성(Atomicity) | 전부 실행되거나 전혀 안 되거나 (Commit/Rollback) |\n| 일관성(Consistency) | 실행 후에도 DB가 일관된 상태 유지 |\n| 독립성(Isolation) | 실행 중인 트랜잭션에 다른 트랜잭션이 끼어들 수 없음 |\n| 영속성(Durability) | 커밋된 결과는 영구 반영 |\n\n- 상태: 활동 → 부분 완료 → 완료(커밋) / 실패 → 철회(롤백)\n- 회복 기법: 즉시 갱신(Undo + Redo), 지연 갱신(Redo만), 체크포인트, 그림자 페이지(Undo 불필요)\n- Redo = 로그로 다시 실행(커밋된 것), Undo = 취소(커밋 안 된 것)\n- 병행 제어: 로킹(Locking, 로킹 단위가 크면 병행성↓ 오버헤드↓), 2단계 로킹(확장 → 축소), 타임스탬프, 낸관적 기법(검증)\n- 병행 제어 실패 문제: 갱신 분실, 현황 파악 오류, 모순성, 연쇄 복귀\n\n### 3-9. 절차형 SQL\n\n- 프로시저: 일련의 SQL을 저장해 호출, 반환값 없을 수 있음 (`CALL`/`EXECUTE`)\n- 사용자 정의 함수: 반드시 값 1개 반환(`RETURN`)\n- 트리거: INSERT·UPDATE·DELETE 같은 이벤트가 발생하면 자동 실행. 트리거 안에서는 COMMIT/ROLLBACK 불가\n- 커서: 여러 행 결과를 한 행씩 처리(OPEN → FETCH → CLOSE)\n\n## 4과목 정보시스템 기초기술\n\n컴퓨터 구조, 개발 환경, 형상관리·배포, 개발 방법론, 보안, 신기술 용어가 나온다. 대부분 용어 뜻을 고르는 문제라서 표로 외우는 게 효율적이다.\n\n### 4-1. 컴퓨터 구조 기초\n\n- 진법 변환: 10진수 13 = 2진수 1101 = 8진수 15 = 16진수 D\n- 2진수 → 8진수는 3자리씩, 16진수는 4자리씩 묶기 (1011 0110₂ = B6₁₆)\n- 보수: 1의 보수(0↔1 반전), 2의 보수(1의 보수 + 1). 컴퓨터는 음수를 2의 보수로 표현\n- 단위: bit \u003c Nibble(4bit) \u003c Byte(8bit) \u003c Word. 1KB = 1024B, KB \u003c MB \u003c GB \u003c TB \u003c PB\n- 문자 코드: BCD(6비트), ASCII(7비트, 128자), EBCDIC(8비트), 유니코드(전 세계 문자)\n- 그레이 코드: 인접 값이 1비트만 다름. 2진수 → 그레이: 첫 비트 그대로, 나머지는 앞 비트와 XOR (1011 → 1110)\n- 논리 게이트: AND(둘 다 1), OR(하나라도 1), NOT(반전), XOR(서로 다르면 1), NAND, NOR\n- 불 대수: A + A = A, A · A = A, A + 1 = 1, A · 0 = 0, A + A̅ = 1, A + AB = A, 드모르간 (A+B)̅ = A̅·B̅\n- CPU 구성: 제어 장치(명령 해독·제어), 연산 장치(ALU), 레지스터\n- 주요 레지스터: PC(다음 명령 주소), IR(현재 명령), MAR(기억장치 주소), MBR(기억장치 데이터), AC(누산기, 연산 결과)\n- 명령 사이클: 인출(Fetch) → 간접(Indirect) → 실행(Execute) → 인터럽트(Interrupt)\n- RISC(명령 적고 단순, 빠름) vs CISC(명령 많고 복잡)\n- ROM(비휘발성, 읽기 전용) vs RAM(휘발성). SRAM(캐시, 빠름, 재충전 불필요) vs DRAM(주기억, 재충전 필요)\n- 입출력 방식: 프로그램 I/O(CPU가 계속 확인), 인터럽트 I/O, DMA(CPU 거치지 않고 메모리와 직접), 채널\n\n### 4-2. 개발자 환경 구축\n\n- 하드웨어 환경: 클라이언트(PC, 모바일) + 서버(웹 서버, WAS, DB 서버, 파일 서버)\n- 웹 서버: 정적 콘텐츠(HTML, 이미지) 처리 — Apache, Nginx, IIS\n- WAS: 동적 콘텐츠·비즈니스 로직 처리 — Tomcat, JBoss, WebLogic, JEUS\n- DB 서버: Oracle, MySQL, MariaDB, MS-SQL, PostgreSQL\n- 소프트웨어 환경: 시스템 SW(OS, DBMS, JVM) + 개발 SW(요구사항 관리, 설계·모델링, 구현, 테스트, 형상관리, 빌드 도구)\n- IDE(통합 개발 환경): 편집·컴파일·디버깅을 한 곳에서 — Eclipse, IntelliJ, Visual Studio, VS Code\n- 빌드 도구: Ant(XML, 규칙 없음), Maven(pom.xml, 의존성 관리), Gradle(Groovy/Kotlin 스크립트, 안드로이드 기본), Jenkins(CI 서버)\n- 미들웨어: OS와 응용 프로그램 사이에서 통신·연결을 담당 — RPC, MOM(메시지 지향), TP-Monitor(트랜잭션 처리), ORB(객체), WAS\n- 가상화·컨테이너: VM(하이퍼바이저 위에 OS 통째로), Docker(OS 커널 공유, 가벼움), Kubernetes(컨테이너 오케스트레이션)\n\n### 4-3. 개발환경 운영지원 (형상관리·배포)\n\n- 형상관리(SCM): 개발 과정의 변경 사항을 관리·통제. 절차: 식별 → 통제 → 감사 → 기록(보고)\n- 버전 관리 방식: 공유 폴더(RCS, SCCS), 클라이언트/서버(CVS, SVN), 분산 저장소(Git, Mercurial, Bitkeeper)\n- 용어: 저장소(Repository), 체크아웃(받기), 커밋(올리기), 임포트(최초 등록), 동기화(Update), 브랜치, 병합(Merge), 충돌(Conflict), 베이스라인(기준선)\n- Git 명령어: `init`(생성), `clone`(복제), `add`(스테이징), `commit`(로컬 저장), `push`(원격 업로드), `pull`(원격 가져와 병합), `fetch`(가져오기만), `branch`, `checkout`/`switch`, `merge`, `status`, `log`\n- Git 영역: 작업 디렉터리 → (add) → 스테이징 영역 → (commit) → 로컬 저장소 → (push) → 원격 저장소\n- CI/CD: 지속적 통합(코드를 자주 합치고 자동 빌드·테스트), 지속적 배포(자동으로 운영 환경에 배포)\n- 패키징: 사용자 중심, 모듈화, 다양한 환경 고려. 작업 순서: 기능 식별 → 모듈화 → 빌드 진행 → 사용자 환경 분석 → 패키징 및 변경 개선 → 배포\n- 릴리즈 노트: 버전, 추가·수정 기능, 버그 수정 내용을 사용자에게 알리는 문서 (헤더, 개요, 목적, 이슈 요약, 재현 항목, 수정/개선, 면책 조항)\n- 저작권 보호(DRM): 콘텐츠 제공자, 패키저, 클리어링 하우스(라이선스 관리), DRM 컨트롤러. 기술: 암호화, 키 관리, 식별, 크랙 방지\n- 배포 도구: 빌드 도구(Maven, Gradle), 형상관리(Git), 패키징 도구, CI 도구(Jenkins)\n\n### 4-4. 소프트웨어 개발 방법론\n\n| 모델 | 특징 |\n| --- | --- |\n| 폭포수 | 단계를 순서대로, 이전 단계로 못 돌아감. 가장 오래됨 |\n| 프로토타입 | 견본을 만들어 사용자 요구를 확인 |\n| 나선형 | 계획 → 위험 분석 → 개발 → 평가 반복, **위험 분석** 강조 |\n| V-모델 | 폭포수 + 단계별 테스트 대응 |\n| 애자일 | 짧은 반복(스프린트), 변화 대응, 고객과 협업 |\n\n- 애자일 선언: 프로세스·도구보다 **개인과 상호작용**, 문서보다 **작동하는 SW**, 계약 협상보다 **고객과 협업**, 계획보다 **변화에 대응**\n- 스크럼: 제품 책임자(PO, 백로그 우선순위), 스크럼 마스터(장애 제거), 개발팀. 스프린트(2\\~4주), 데일리 스크럼(매일 15분), 번다운 차트(남은 작업)\n- XP: 짝 프로그래밍, 테스트 주도 개발(TDD), 리팩토링, 지속적 통합. 5가지 가치: 용기, 단순성, 의사소통, 피드백, 존중\n- 기타: 칸반(보드로 작업 시각화), 린(낭비 제거)\n- 결합도는 낮게, 응집도는 높게 (모듈 독립성 ↑)\n- 결합도(강 → 약): 내용 > 공통 > 외부 > 제어 > 스탬프 > 자료 (암기: 내공외제스자)\n- 응집도(강 → 약): 기능적 > 순차적 > 교환(통신)적 > 절차적 > 시간적 > 논리적 > 우연적 (암기: 기순교절시논우)\n- 디자인 패턴(GoF): 생성(싱글톤, 팩토리 메서드, 빌더, 프로토타입, 추상 팩토리), 구조(어댑터, 브리지, 컴포지트, 데코레이터, 퍼사드, 플라이웨이트, 프록시), 행위(옵저버, 전략, 템플릿 메서드, 커맨드, 이터레이터, 상태 등)\n- UML 다이어그램: 구조(클래스, 객체, 컴포넌트, 배치, 패키지) / 행위(유스케이스, 시퀀스, 활동, 상태, 커뮤니케이션)\n\n### 4-5. 화면 구현·UI\n\n- UI 유형: CLI(명령어), GUI(그래픽), NUI(터치·음성 등 자연스러운 동작), OUI(사물 자체가 인터페이스)\n- UI 설계 원칙: 직관성(바로 알 수 있음), 유효성(목적 달성), 학습성(쉽게 배움), 유연성(실수 최소화)\n- 설계 도구: 와이어프레임(레이아웃 뼈대), 목업(실제와 비슷한 정적 화면), 스토리보드(화면 + 설명 + 흐름, 최종 산출물), 프로토타입(동적 견본), 유스케이스\n- UX: 사용자가 느끼는 경험. UI는 수단, UX는 경험 전체\n- UI 테스트: 사용성 테스트, 크로스 브라우징(여러 브라우저에서 동일하게 보이는지), 반응형 확인, 웹 접근성(장애인·고령자)\n- 표준: ISO/IEC 9126 → 25010 (품질 특성: 기능성, 신뢰성, 사용성, 효율성, 유지보수성, 이식성)\n\n### 4-6. 정보보안\n\n- 3요소(CIA): 기밀성(인가된 사람만 열람), 무결성(인가된 사람만 수정), 가용성(필요할 때 사용 가능). 추가: 인증, 부인 방지\n- 접근 통제: 식별 → 인증 → 인가 → 책임추적(AAA: Authentication, Authorization, Accounting)\n- 인증 유형: 지식(비밀번호), 소유(스마트카드, OTP), 존재(지문·홍채), 행위(서명·목소리)\n- 접근 통제 모델: DAC(소유자 재량), MAC(보안 등급 강제), RBAC(역할 기반)\n\n**암호화**\n\n| 방식 | 키 | 알고리즘 | 특징 |\n| --- | --- | --- | --- |\n| 대칭키(비밀키) | 암호화·복호화 키 같음 | DES, 3DES, AES, SEED, ARIA, IDEA | 빠름, 키 배분 문제 |\n| 비대칭키(공개키) | 공개키로 암호화, 개인키로 복호화 | RSA, ECC, ElGamal, DSA | 느림, 키 관리 쉬움 |\n| 해시(단방향) | 없음 | MD5, SHA-1, SHA-256 | 복호화 불가, 무결성 확인·비밀번호 저장 |\n\n- 대칭키 필요 키 개수: n(n−1)/2, 비대칭키: 2n\n- 솔트(Salt): 해시 전에 붙이는 랜덤 값(같은 비밀번호도 다른 해시)\n- 전자서명: 개인키로 서명, 공개키로 검증(부인 방지). PKI는 인증기관(CA)이 인증서 발급\n- 보안 프로토콜: SSL/TLS(웹 암호화, HTTPS), SSH(원격 접속), IPSec(IP 계층), VPN(가상 사설망)\n\n**보안 공격**\n\n| 공격 | 내용 |\n| --- | --- |\n| SQL 삽입(Injection) | 입력창에 SQL을 넣어 DB 조작. 대책: 입력값 검증, Prepared Statement |\n| XSS | 게시물에 악성 스크립트를 심어 열람자 브라우저에서 실행 |\n| CSRF | 사용자가 의도하지 않은 요청을 보내게 함 |\n| 버퍼 오버플로 | 할당된 메모리보다 많이 써서 다른 영역을 덮음. 대책: 스택 가드, ASLR |\n| DoS / DDoS | 자원을 고갈시켜 서비스 막음 / 여러 대(좀비 PC, 봇넷)가 동시 공격 |\n| SYN 플러딩 | 3-way handshake의 SYN만 대량으로 보내 대기 큐를 채움 |\n| Ping of Death | 허용 크기를 넘는 ICMP 패킷 |\n| Smurf | 출발지를 피해자로 속이고 브로드캐스트로 ICMP |\n| Land | 출발지와 목적지 IP를 같게 |\n| Teardrop | 패킷 조각의 오프셋을 조작해 재조립 불가 |\n| 스니핑 | 네트워크 패킷 엿듣기 |\n| 스푸핑 | IP·ARP·DNS 등을 위장 |\n| 피싱 / 파밍 / 스미싱 | 가짜 메일·사이트 / DNS 조작으로 가짜 사이트 유도 / 문자 메시지 |\n| 랜섬웨어 | 파일을 암호화하고 복구 대가 요구 |\n| APT | 특정 대상을 오랫동안 지속 공격 |\n| 무차별 대입(Brute Force) | 모든 조합을 대입 |\n| 키로거 | 키보드 입력을 가로챔 |\n| 백도어 | 인증 없이 들어올 수 있는 비밀 통로 |\n| 트로이 목마 | 정상 프로그램으로 위장, 자기 복제 없음 |\n| 웜 / 바이러스 | 스스로 복제·네트워크 전파 / 다른 파일에 기생해 감염 |\n| 제로데이 | 보안 패치 전 취약점 공격 |\n| 워터링 홀 | 대상이 자주 가는 사이트를 감염시켜 기다림 |\n| 사회공학 | 사람을 속여 정보를 빼냄 |\n\n- 보안 솔루션: 방화벽(패킷 필터링), IDS(침입 탐지), IPS(침입 차단), WAF(웹 방화벽), NAC(네트워크 접근 제어), DLP(정보 유출 방지), SIEM(로그 통합 분석), 허니팟(유인용 가짜 시스템)\n- 시큐어 코딩: 입력값 검증, 보안 기능, 에러 처리, 코드 오류, 캡슐화, API 오용 등을 점검\n\n### 4-7. 신기술 용어\n\n| 용어 | 뜻 |\n| --- | --- |\n| 클라우드 | IaaS(인프라), PaaS(개발 플랫폼), SaaS(소프트웨어)를 인터넷으로 빌려 씀 |\n| IoT | 사물에 센서·통신을 달아 인터넷으로 연결 |\n| 빅데이터 | 3V: 양(Volume), 속도(Velocity), 다양성(Variety). 도구: Hadoop, Spark |\n| 블록체인 | 거래 기록을 분산 원장에 연결해 저장, 위변조 어려움 |\n| 머신러닝 / 딥러닝 | 데이터로 학습 / 인공 신경망 여러 층 |\n| 메타버스 / 디지털 트윈 | 가상 세계 / 현실 사물을 가상으로 똑같이 복제 |\n| 엣지 컴퓨팅 | 데이터를 중앙 클라우드가 아닌 가까운 곳에서 처리 |\n| SDN | 네트워크를 소프트웨어로 제어 |\n| 마이크로서비스 / MSA | 하나의 앱을 작은 독립 서비스들로 나눔 |\n| REST API | HTTP 메서드(GET 조회, POST 생성, PUT 수정, DELETE 삭제)로 자원을 다룸 |\n| JSON / XML | 데이터 교환 형식 (키-값 / 태그) |\n| 서버리스 | 서버 관리 없이 코드만 올려 실행(AWS Lambda) |\n\n## 시험 직전 암기 체크리스트\n\n시험 전날 이 목록만 다시 보고, 설명 못 하는 항목은 위 본문으로 돌아가자.\n\n- [ ] 연산자 우선순위: 단산시관비논조대순\n- [ ] `a++` vs `++a`, 정수 나눗셈·`%` 부호 (C/Java vs Python)\n- [ ] C 포인터 `*(p+i)` = `p[i]`, 문자열 끝 `\\0`\n- [ ] Java 오버라이딩 → 자식 메서드 실행, 부모 생성자 먼저\n- [ ] 접근 제어자 4종 범위\n- [ ] Python 슬라이싱·`range` 끝값 미포함\n- [ ] 객체지향 5특징: 캡슐화·상속·다형성·추상화·메시지\n- [ ] 프로세스 상태 전이 4가지\n- [ ] 스케줄링 선점/비선점 구분, HRN 공식\n- [ ] 교착 상태 4조건: 상호 배제·점유와 대기·비선점·환형 대기\n- [ ] 페이지 교체(FIFO·LRU·LFU) 부재 횟수 계산\n- [ ] UNIX 명령어와 `chmod` 8진수 변환\n- [ ] OSI 7계층: 물데네전세표응 + 계층별 장비·프로토콜\n- [ ] TCP vs UDP, ARP/RARP/ICMP/DHCP/DNS\n- [ ] 주요 포트 번호 (21, 22, 23, 25, 53, 80, 443)\n- [ ] IP 클래스 범위, 서브넷 호스트 수 = 2ⁿ − 2\n- [ ] 화이트박스 vs 블랙박스 기법, 스텁 vs 드라이버\n- [ ] 스키마 3단계, 차수 vs 카디널리티\n- [ ] 키 5종, 무결성 3종\n- [ ] 정규화: 도부이결다조\n- [ ] SQL 분류 (DDL·DML·DCL·TCL) 명령어\n- [ ] SELECT 실행 순서, WHERE vs HAVING, `LIKE`의 `%`와 `_`\n- [ ] DROP vs TRUNCATE vs DELETE\n- [ ] 조인 종류, 관계 대수 기호 σ π ⋈ ÷\n- [ ] ACID, Redo vs Undo\n- [ ] 진법 변환, 2의 보수, 그레이 코드\n- [ ] CPU 레지스터 (PC·IR·MAR·MBR·AC)\n- [ ] 웹 서버 vs WAS, 빌드 도구 3종\n- [ ] Git 명령어 흐름 (add → commit → push)\n- [ ] 결합도: 내공외제스자 / 응집도: 기순교절시논우\n- [ ] 애자일 선언 4가지, 스크럼 역할\n- [ ] CIA, 대칭키 vs 비대칭키 알고리즘\n- [ ] 공격 유형 (SQL 삽입, XSS, DDoS, 스니핑, 스푸핑, 파밍 등)\n- [ ] 클라우드 IaaS·PaaS·SaaS, 빅데이터 3V\n";
+const N=["①","②","③","④"],LIMIT=3600,KEY="pgf-study-v1";
+const esc=t=>String(t).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const $=id=>document.getElementById(id);
+const app=$("app"),ov=$("ov"),dlg=$("dlg"),tabs=$("tabs");
+
+/* ---------- 저장: 이 폰(localStorage) ---------- */
+let data={wrong:{},hist:[]};const where="이 폰";
+try{const l=JSON.parse(localStorage.getItem(KEY));if(l&&typeof l.wrong==="object")data={wrong:l.wrong,hist:Array.isArray(l.hist)?l.hist.slice(0,30):[]}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function addWrong(ids){const t=Date.now();ids.forEach(i=>{const w=data.wrong[i];data.wrong[i]={n:(w?w.n:0)+1,t}})}
+
+/* ---------- 마크다운(요약노트) ---------- */
+function inline(s){
+  return s.split(/(`[^`]+`)/).map(p=>p.startsWith("`")&&p.endsWith("`")&&p.length>1?`<code>${esc(p.slice(1,-1))}</code>`:
+    esc(p).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')).join("");
+}
+function md(src){
+  const L=src.split("\n"),out=[];let i=0;
+  const cells=r=>{const s=r.trim().replace(/^\|/,"").replace(/\|$/,"");const o=[];let c="",bt=false;for(const ch of s){if(ch==="`")bt=!bt;if(ch==="|"&&!bt){o.push(c.trim());c=""}else c+=ch}o.push(c.trim());return o};
+  while(i<L.length){
+    const l=L[i];
+    if(l.startsWith("```")){const lang=l.slice(3);let b=[];i++;while(i<L.length&&!L[i].startsWith("```"))b.push(L[i++]);i++;out.push(`<pre><code>${esc(b.join("\n"))}</code></pre>`);continue}
+    if(/^### /.test(l)){out.push(`<h3>${inline(l.slice(4))}</h3>`);i++;continue}
+    if(/^## /.test(l)){out.push(`<h2>${inline(l.slice(3))}</h2>`);i++;continue}
+    if(l.startsWith("|")){const rows=[];while(i<L.length&&L[i].startsWith("|"))rows.push(L[i++]);
+      const h=cells(rows[0]),body=rows.slice(2).map(cells);
+      out.push(`<div class="tw"><table><tr>${h.map(c=>`<th>${inline(c)}</th>`).join("")}</tr>${body.map(r=>`<tr>${r.map(c=>`<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table></div>`);continue}
+    if(/^- /.test(l)){const it=[];while(i<L.length&&/^- /.test(L[i]))it.push(L[i++].slice(2));
+      out.push(`<ul>${it.map(t=>t.startsWith("[ ] ")?`<li class="ck">☐ ${inline(t.slice(4))}</li>`:`<li>${inline(t)}</li>`).join("")}</ul>`);continue}
+    if(/^\d+\. /.test(l)){const it=[];while(i<L.length&&/^\d+\. /.test(L[i]))it.push(L[i++].replace(/^\d+\. /,""));out.push(`<ol>${it.map(t=>`<li>${inline(t)}</li>`).join("")}</ol>`);continue}
+    if(l.trim()){const p=[];while(i<L.length&&L[i].trim()&&!/^(#|\||- |\d+\. |```)/.test(L[i]))p.push(L[i++]);out.push(`<p>${inline(p.join(" "))}</p>`);continue}
+    i++;
+  }
+  return out.join("");
+}
+const NOTES=MD.split(/\n(?=## )/).filter(b=>b.startsWith("## ")).map(b=>({title:b.split("\n")[0].slice(3),subs:(b.match(/^### .+/gm)||[]).map(s=>s.slice(4)),body:b}));
+
+/* ---------- 공통 ---------- */
+const qhtml=q=>(q.q.includes("<table")?q.q:esc(q.q))+(q.c?`<pre>${esc(q.c)}</pre>`:"");
+const fmt=s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+const ago=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
+const wrongIds=()=>Object.keys(data.wrong).map(Number).filter(i=>Q[i]).sort((a,b)=>data.wrong[b].t-data.wrong[a].t);
+function modal(h){dlg.innerHTML=h;ov.classList.add("show")}
+function close(){ov.classList.remove("show")}
+ov.onclick=e=>{if(e.target===ov)close()};
+const ICON={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',exam:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',notes:'<path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/>',wrong:'<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'};
+function setTabs(on,show=true){
+  tabs.style.display=show?"":"none";app.style.paddingBottom=show?"84px":"96px";
+  tabs.innerHTML=[["","home","홈"],["exam-list","exam","시험"],["notes","notes","요약노트"],["wrong","wrong","오답노트"]].map(([h,k,t])=>
+    `<a href="#${h}" class="${on===k?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>${t}${k==="wrong"&&wrongIds().length?` (${wrongIds().length})`:""}</a>`).join("");
+}
+const foot=h=>`<div class="foot"><div class="in">${h}</div></div>`;
+
+/* ---------- 홈 ---------- */
+function home(){
+  setTabs("home");
+  const h=data.hist,last=h[0],best=h.filter(x=>x.mode==="exam").reduce((m,x)=>Math.max(m,x.score),0);
+  app.innerHTML=`<div class="hero"><h1>프로그래밍기능사 필기</h1><p>60문항 · 60분 · 60점 이상 합격</p>
+  <div class="stats"><div class="stat"><b>${last?last.score:"–"}</b><span>최근 점수</span></div><div class="stat"><b>${best||"–"}</b><span>모의고사 최고</span></div><div class="stat"><b>${wrongIds().length}</b><span>오답 문제</span></div></div></div>
+  <div class="sec">시험</div><div class="list">
+  <button class="item" data-h="exam"><span class="ic">60</span><span class="t"><b>실전 모의고사</b><small>60문항 · 60분 타이머 · 자동 채점</small></span><span class="ar">›</span></button>
+  ${SS.map((t,s)=>`<button class="item" data-h="practice-${s+1}"><span class="ic" style="background:#4a5b86">${s+1}</span><span class="t"><b>${t} 연습</b><small>15문항 · 풀 때마다 정답 확인</small></span><span class="ar">›</span></button>`).join("")}</div>
+  <div class="sec">공부</div><div class="list">
+  <button class="item" data-h="notes"><span class="ic" style="background:var(--ok)">노트</span><span class="t"><b>요약노트</b><small>4과목 핵심 정리 · 검색</small></span><span class="ar">›</span></button>
+  <button class="item" data-h="wrong"><span class="ic" style="background:var(--hot)">오답</span><span class="t"><b>오답노트</b><small>틀린 문제 모아 보기 · 다시 풀기</small></span>${wrongIds().length?`<span class="badge">${wrongIds().length}</span>`:""}<span class="ar">›</span></button></div>
+  <div class="sec">최근 기록</div>${h.length?`<div class="list">${h.slice(0,8).map(x=>`<div class="item"><span class="t"><b>${esc(x.label)}</b><small>${ago(x.t)}</small></span><b class="${x.score>=60?"pass":"fail"}">${x.score}점</b></div>`).join("")}</div>`:'<p class="empty">아직 푼 기록이 없어요.</p>'}
+  <p class="note pad">기록과 오답은 ${where}에 저장돼요. 문제는 요약노트 범위로 만든 오리지널 문제이며 실제 기출이 아닙니다.</p>`;
+  app.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>location.hash=b.dataset.h);
+}
+function examList(){
+  setTabs("exam");
+  app.innerHTML=`<div class="hd"><h1>시험</h1></div><div class="list" style="margin-top:12px">
+  <button class="item" data-h="exam"><span class="ic">60</span><span class="t"><b>실전 모의고사</b><small>${exam&&!exam.done?"진행 중 · 이어서 풀기":"60문항 · 60분"}</small></span><span class="ar">›</span></button>
+  ${SS.map((t,s)=>`<button class="item" data-h="practice-${s+1}"><span class="ic" style="background:#4a5b86">${s+1}</span><span class="t"><b>${t}</b><small>15문항 연습</small></span><span class="ar">›</span></button>`).join("")}
+  <button class="item" data-h="retry"><span class="ic" style="background:var(--hot)">오답</span><span class="t"><b>오답만 다시 풀기</b><small>${wrongIds().length}문항 · 맞히면 오답노트에서 빠져요</small></span><span class="ar">›</span></button></div>`;
+  app.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>location.hash=b.dataset.h);
+}
+
+/* ---------- 실전 모의고사 ---------- */
+let exam=null,fs=1;
+function examStart(){
+  exam={ans:Array(60).fill(-1),cur:0,left:LIMIT,done:false,wrongOnly:false,t0:Date.now()};
+  clearInterval(examStart.tk);
+  examStart.tk=setInterval(()=>{if(!exam||exam.done)return;exam.left--;const t=$("tm");if(t){t.textContent=fmt(exam.left);t.classList.toggle("low",exam.left<=300)}if(exam.left<=0)finish(true)},1000);
+}
+function examView(){
+  if(!exam){setTabs("exam");app.innerHTML=`<div class="hd"><button id="bk">‹</button><h1>실전 모의고사</h1></div><div class="card"><h2 style="margin:0 0 8px">시험 안내</h2>
+  <p>60문항 4지 택일, 60분. 시간이 끝나면 자동 제출되고 60점 이상이면 합격이에요.</p><p class="note">틀린 문제는 오답노트에 자동으로 모여요.</p></div>${foot('<button class="pri" id="go">시험 시작</button>')}`;
+  $("bk").onclick=()=>history.back();$("go").onclick=()=>{examStart();examView()};setTabs("exam",false);return}
+  if(exam.done)return result();
+  setTabs("exam",false);
+  const q=Q[exam.cur],done=exam.ans.filter(a=>a>=0).length;
+  app.innerHTML=`<div class="hd"><h1>${exam.cur+1} / 60</h1><span class="timer${exam.left<=300?" low":""}" id="tm">${fmt(exam.left)}</span><button id="sh">답안지</button><button id="sb">제출</button></div>
+  <div class="prog"><i style="width:${done/60*100}%"></i></div>
+  <div class="card" style="--fs:${fs}"><div class="subj">${S[q.s]}<span style="flex:1"></span><button id="fz" style="min-height:32px;padding:0 10px;font-size:13px">글자 ${fs>1?"크게":"보통"}</button></div>
+  <div class="qt"><b>${exam.cur+1}.</b> ${qhtml(q)}</div>
+  <div class="opts">${q.o.map((o,i)=>`<button class="opt${exam.ans[exam.cur]===i?" on":""}" data-o="${i}"><span class="n">${i+1}</span><span>${esc(o)}</span></button>`).join("")}</div></div>
+  ${foot(`<button id="pv"${exam.cur?"":" disabled"}>‹ 이전</button><button id="nx"${exam.cur<59?"":" disabled"} class="pri">다음 ›</button>`)}`;
+  app.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{const i=+b.dataset.o;exam.ans[exam.cur]=exam.ans[exam.cur]===i?-1:i;examView()});
+  $("pv").onclick=()=>{exam.cur--;examView();scrollTo(0,0)};$("nx").onclick=()=>{exam.cur++;examView();scrollTo(0,0)};
+  $("fz").onclick=()=>{fs=fs>1?1:1.15;examView()};
+  $("sh").onclick=()=>{modal(`<h2>답안지 · ${done}/60</h2><p class="note">검은 칸은 푼 문제예요. 번호를 누르면 이동해요.</p><div class="grid">${Q.map((_,k)=>`<button data-j="${k}" class="${exam.ans[k]>=0?"done":""}${k===exam.cur?" cur":""}">${k+1}</button>`).join("")}</div><div class="btns"><button id="cx">닫기</button></div>`);
+    dlg.querySelectorAll("[data-j]").forEach(b=>b.onclick=()=>{exam.cur=+b.dataset.j;close();examView();scrollTo(0,0)});$("cx").onclick=close};
+  $("sb").onclick=()=>{const u=60-done;modal(`<h2>답안을 제출할까요?</h2><p>${u?`안 푼 문제가 <b>${u}개</b> 있어요. `:""}제출하면 고칠 수 없어요.</p><div class="btns"><button id="cx">계속 풀기</button><button class="pri" id="ok">제출</button></div>`);
+    $("cx").onclick=close;$("ok").onclick=()=>{close();finish(false)}};
+}
+function finish(auto){
+  if(exam.done)return;exam.done=true;exam.auto=auto;clearInterval(examStart.tk);
+  const right=Q.filter((q,i)=>exam.ans[i]===q.a).length;exam.score=Math.round(right/60*100);exam.right=right;
+  addWrong(Q.filter((q,i)=>exam.ans[i]!==q.a).map(q=>q.id));
+  data.hist.unshift({t:Date.now(),mode:"exam",label:"실전 모의고사",score:exam.score,right,total:60});data.hist=data.hist.slice(0,30);save();
+  if(location.hash!=="#exam")location.hash="exam";else result();
+}
+function result(){
+  setTabs("exam");
+  const per=S.map((_,s)=>{const ids=Q.filter(q=>q.s===s);return [ids.filter(q=>exam.ans[q.id]===q.a).length,ids.length]});
+  const list=Q.filter(q=>!exam.wrongOnly||exam.ans[q.id]!==q.a);
+  app.innerHTML=`<div class="hd"><h1>채점 결과</h1><button id="nw">새 시험</button></div>
+  <div class="card"><div style="display:flex;align-items:flex-end;gap:14px"><div class="big ${exam.score>=60?"pass":"fail"}">${exam.score}</div><div><b class="${exam.score>=60?"pass":"fail"}" style="font-size:20px">${exam.score>=60?"합격":"불합격"}</b><div class="note">${exam.right}/60 정답 · ${exam.auto?"시간 종료":"제출"} · ${fmt(LIMIT-Math.max(exam.left,0))} 소요</div></div></div>
+  ${per.map(([r,t],s)=>`<div class="bar"><span>${SS[s]}</span><i><s style="width:${r/t*100}%"></s></i><span>${r}/${t}</span></div>`).join("")}
+  <p class="note" style="margin:12px 0 0">틀린 ${60-exam.right}문제는 오답노트에 추가됐어요.</p></div>
+  <div class="chips"><button class="${exam.wrongOnly?"":"on"}" data-w="0">전체</button><button class="${exam.wrongOnly?"on":""}" data-w="1">틀린 문제만</button></div>
+  ${list.map(q=>review(q,exam.ans[q.id])).join("")||'<p class="empty">틀린 문제가 없어요.</p>'}`;
+  app.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{exam.wrongOnly=b.dataset.w==="1";result()});
+  $("nw").onclick=()=>{exam=null;examView()};
+}
+function review(q,m,extra=""){
+  const ok=m===q.a;
+  return `<article class="card"><div class="subj"><span class="tag ${ok?"ok":m<0?"m":""}">${ok?"정답":m<0?"미응답":"오답"}</span>${S[q.s]} · ${q.id+1}번${extra}</div>
+  <div class="qt">${qhtml(q)}</div><div class="opts">${q.o.map((o,k)=>`<div class="opt ${k===q.a?"o":k===m?"x":""}"><span class="n">${N[k]}</span><span>${esc(o)}${k===m&&!ok?" <small>(내 답)</small>":""}</span></div>`).join("")}</div>
+  <div class="ex"><b>정답 ${N[q.a]}</b> · ${esc(q.e)}</div></article>`;
+}
+
+/* ---------- 연습 / 오답 다시 풀기 (바로 채점) ---------- */
+let pr=null;
+function practice(key){
+  if(!pr||pr.key!==key){
+    const ids=key==="retry"?wrongIds():Q.filter(q=>q.s===+key.slice(-1)-1).map(q=>q.id);
+    pr={key,ids,i:0,pick:{},right:0,saved:false};
+  }
+  setTabs("exam",false);
+  const title=key==="retry"?"오답 다시 풀기":SS[+key.slice(-1)-1]+" 연습";
+  if(!pr.ids.length){app.innerHTML=`<div class="hd"><button id="bk">‹</button><h1>${title}</h1></div><p class="empty">오답노트가 비어 있어요. 모의고사나 연습을 먼저 풀어 보세요.</p>`;$("bk").onclick=()=>history.back();setTabs("exam");return}
+  if(pr.i>=pr.ids.length){
+    const sc=Math.round(pr.right/pr.ids.length*100);
+    if(!pr.saved){pr.saved=true;data.hist.unshift({t:Date.now(),mode:key,label:title,score:sc,right:pr.right,total:pr.ids.length});data.hist=data.hist.slice(0,30);save()}
+    setTabs("exam");
+    app.innerHTML=`<div class="hd"><button id="bk">‹</button><h1>${title}</h1></div><div class="card" style="text-align:center"><div class="big ${sc>=60?"pass":"fail"}">${sc}</div><p>${pr.ids.length}문항 중 ${pr.right}문항 정답</p>
+    ${key==="retry"?`<p class="note">맞힌 문제는 오답노트에서 뺐어요. 남은 오답 ${wrongIds().length}개.</p>`:`<p class="note">틀린 문제는 오답노트에 추가됐어요.</p>`}</div>
+    ${foot(`<button id="hm">홈으로</button><button class="pri" id="ag">다시 풀기</button>`)}`;
+    $("bk").onclick=()=>history.back();$("hm").onclick=()=>location.hash="";$("ag").onclick=()=>{pr=null;practice(key)};return;
+  }
+  const q=Q[pr.ids[pr.i]],m=pr.pick[pr.i],ans=m!==undefined;
+  app.innerHTML=`<div class="hd"><button id="bk">‹</button><h1>${title} · ${pr.i+1}/${pr.ids.length}</h1></div><div class="prog"><i style="width:${pr.i/pr.ids.length*100}%"></i></div>
+  <div class="card"><div class="subj">${S[q.s]} · ${q.id+1}번${key==="retry"?` · ${data.wrong[q.id]?data.wrong[q.id].n+"회 틀림":"해결"}`:""}</div><div class="qt">${qhtml(q)}</div>
+  <div class="opts">${q.o.map((o,k)=>`<button class="opt ${ans?(k===q.a?"o":k===m?"x":""):""}" data-o="${k}"${ans?" disabled":""}><span class="n">${ans?N[k]:k+1}</span><span>${esc(o)}</span></button>`).join("")}</div>
+  ${ans?`<div class="ex"><b>${m===q.a?"정답이에요":"오답이에요"} · 정답 ${N[q.a]}</b><br>${esc(q.e)}</div>`:""}</div>
+  ${foot(ans?`<button class="pri" id="nx">${pr.i+1<pr.ids.length?"다음 문제 ›":"결과 보기"}</button>`:`<button id="sk">건너뛰기</button>`)}`;
+  $("bk").onclick=()=>history.back();
+  app.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{
+    const k=+b.dataset.o;pr.pick[pr.i]=k;
+    if(k===q.a){pr.right++;if(key==="retry")delete data.wrong[q.id]}else addWrong([q.id]);
+    save();practice(key)});
+  if(ans)$("nx").onclick=()=>{pr.i++;practice(key);scrollTo(0,0)};
+  else $("sk").onclick=()=>{pr.pick[pr.i]=-1;addWrong([q.id]);save();practice(key)};
+}
+
+/* ---------- 요약노트 ---------- */
+let qn="";
+function notes(){
+  setTabs("notes");
+  const hits=qn.trim()?NOTES.flatMap((n,ni)=>n.body.split("\n").filter(l=>l.toLowerCase().includes(qn.trim().toLowerCase())&&!l.startsWith("#")).slice(0,6).map(l=>({ni,l}))):[];
+  app.innerHTML=`<div class="hd"><h1>요약노트</h1></div><div class="pad"><input class="search" id="qs" type="search" placeholder="용어 검색 (예: 정규화, chmod)" value="${esc(qn)}" autocomplete="off"></div>
+  ${qn.trim()?`<div class="list">${hits.length?hits.map(h=>`<button class="item" data-n="${h.ni}"><span class="t"><small>${esc(NOTES[h.ni].title)}</small><b>${hl(h.l.replace(/^[-|\d. ]+|\|/g," ").replace(/[`*]/g,"").trim())}</b></span><span class="ar">›</span></button>`).join(""):'<p class="empty">찾는 내용이 없어요.</p>'}</div>`:
+  `<div class="list">${NOTES.map((n,i)=>`<button class="item" data-n="${i}"><span class="ic" style="background:${i===0||i===NOTES.length-1?"var(--mute)":"var(--ok)"}">${i===0?"i":i===NOTES.length-1?"✓":i}</span><span class="t"><b>${esc(n.title)}</b><small>${n.subs.length?esc(n.subs.map(s=>s.replace(/^\d-\d\. /,"")).slice(0,4).join(" · "))+(n.subs.length>4?" 외":""):"시험 구성과 공부 전략"}</small></span><span class="ar">›</span></button>`).join("")}</div>`}`;
+  const qs=$("qs");qs.oninput=()=>{qn=qs.value;const p=qs.selectionStart;notes();const n=$("qs");n.focus();n.setSelectionRange(p,p)};
+  app.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>location.hash="note-"+b.dataset.n);
+}
+const hl=t=>{const s=esc(t),k=esc(qn.trim());if(!k)return s;const i=s.toLowerCase().indexOf(k.toLowerCase());return i<0?s:s.slice(0,i)+"<mark>"+s.slice(i,i+k.length)+"</mark>"+s.slice(i+k.length)};
+function note(i){
+  const n=NOTES[i];if(!n)return notes();
+  setTabs("notes");
+  app.innerHTML=`<div class="hd"><button id="bk">‹</button><h1>${esc(n.title)}</h1></div><div class="card md">${md(n.body)}</div>
+  <div class="pad" style="display:flex;gap:8px">${i>0?`<button data-n="${i-1}" style="flex:1">‹ 이전</button>`:""}${i<NOTES.length-1?`<button data-n="${i+1}" class="pri" style="flex:1">다음 ›</button>`:""}</div>`;
+  $("bk").onclick=()=>location.hash="notes";
+  app.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{location.hash="note-"+b.dataset.n});
+}
+
+/* ---------- 오답노트 ---------- */
+let wf=-1;
+function wrong(){
+  setTabs("wrong");
+  const ids=wrongIds().filter(i=>wf<0||Q[i].s===wf);
+  app.innerHTML=`<div class="hd"><h1>오답노트 · ${wrongIds().length}</h1>${wrongIds().length?'<button id="rt">다시 풀기</button>':""}</div>
+  <div class="chips"><button data-f="-1" class="${wf<0?"on":""}">전체</button>${SS.map((t,s)=>`<button data-f="${s}" class="${wf===s?"on":""}">${t} (${wrongIds().filter(i=>Q[i].s===s).length})</button>`).join("")}</div>
+  ${ids.length?ids.map(i=>{const q=Q[i],w=data.wrong[i];return `<article class="card"><div class="subj"><span class="tag">${w.n}회 틀림</span>${S[q.s]} · ${i+1}번 · ${ago(w.t)}</div>
+  <div class="qt">${qhtml(q)}</div><div class="opts">${q.o.map((o,k)=>`<div class="opt"><span class="n">${N[k]}</span><span>${esc(o)}</span></div>`).join("")}</div>
+  <details><summary>정답과 해설 보기</summary><div class="ex"><b>정답 ${N[q.a]} ${esc(q.o[q.a])}</b><br>${esc(q.e)}</div></details>
+  <div class="btns"><button data-rm="${i}">다 외웠어요 (빼기)</button></div></article>`}).join(""):`<p class="empty">${wrongIds().length?"이 과목엔 오답이 없어요.":"아직 오답이 없어요. 문제를 풀면 틀린 문제가 여기에 모여요."}</p>`}`;
+  app.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{wf=+b.dataset.f;wrong()});
+  app.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{delete data.wrong[b.dataset.rm];save();wrong()});
+  if($("rt"))$("rt").onclick=()=>{pr=null;location.hash="retry"};
+}
+
+/* ---------- 라우팅 ---------- */
+function route(){
+  close();const h=location.hash.slice(1);
+  if(h==="exam")examView();
+  else if(h==="exam-list")examList();
+  else if(/^practice-[1-4]$/.test(h)||h==="retry")practice(h);
+  else if(h==="notes")notes();
+  else if(/^note-\d+$/.test(h))note(+h.slice(5));
+  else if(h==="wrong")wrong();
+  else home();
+  if(!(h==="notes"&&qn))scrollTo(0,0);
+}
+addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(pr&&h!==pr.key)pr=null;route()});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&ov.classList.contains("show"))return close();
+  if(location.hash!=="#exam"||!exam||exam.done||e.target.tagName==="INPUT"||ov.classList.contains("show"))return;
+  if(/^[1-4]$/.test(e.key)){const i=+e.key-1;exam.ans[exam.cur]=exam.ans[exam.cur]===i?-1:i;examView()}
+  else if(e.key==="ArrowRight"&&exam.cur<59){exam.cur++;examView()}else if(e.key==="ArrowLeft"&&exam.cur>0){exam.cur--;examView()}
+});
+route();
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "프로그래밍기능사 필기",
+  "short_name": "기능사 필기",
+  "description": "프로그래밍기능사 필기 모의고사, 요약노트, 오답노트",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1d2b4f",
+  "theme_color": "#1d2b4f",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
